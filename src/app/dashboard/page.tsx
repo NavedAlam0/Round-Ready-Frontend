@@ -152,7 +152,7 @@ function Icon({
   };
 
   return (
-    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${colors[tone]}`}>
+    <span className={`flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md sm:rounded-lg ${colors[tone]}`}>
       {children}
     </span>
   );
@@ -495,8 +495,8 @@ export default function DashboardPage() {
       <Navbar />
       <main className="mx-auto w-full max-w-[1536px] px-5 py-4 sm:px-6 lg:px-8">
         <div className="mb-3">
-          <h1 className="text-[22px] font-bold leading-tight tracking-normal text-[#0f172a]">Dashboard</h1>
-          <p className="mt-0.5 text-[13px] leading-5 text-[#64748b]">
+          <h1 className="text-lg sm:text-[22px] font-bold leading-tight tracking-normal text-[#0f172a]">Dashboard</h1>
+          <p className="mt-0.5 text-[12px] sm:text-[13px] leading-5 text-[#64748b]">
             Track your interview practice and improve with every session.
           </p>
         </div>
@@ -504,44 +504,46 @@ export default function DashboardPage() {
         <div className="grid gap-4 xl:grid-cols-[minmax(0,2.05fr)_minmax(380px,0.95fr)]">
           <section className="min-w-0 space-y-3">
             <div className="overflow-hidden rounded-lg border border-[#c9daf8] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="relative flex flex-col gap-3 px-6 py-5 lg:min-h-[96px] lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative flex flex-col gap-2 sm:gap-3 px-3 py-2.5 sm:px-6 sm:py-5 lg:min-h-[96px] lg:flex-row lg:items-center lg:justify-between">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_42%,rgba(37,99,235,0.13),transparent_30%),linear-gradient(90deg,rgba(239,246,255,0.95),rgba(255,255,255,0.98))]" />
-                <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
-                  <WaveOrb />
+                <div className="relative flex min-w-0 items-center gap-2.5 sm:gap-4">
+                  <div className="shrink-0 scale-[0.55] sm:scale-100 origin-left -mr-5 sm:mr-0">
+                    <WaveOrb />
+                  </div>
                   <div className="min-w-0">
-                    <h2 className="text-[17px] font-bold leading-tight text-[#0f172a]">
+                    <h2 className="text-[13px] sm:text-[17px] font-bold leading-tight text-[#0f172a]">
                       Welcome back, {user.full_name}
                     </h2>
-                    <p className="mt-1 max-w-md text-[13px] leading-5 text-[#64748b]">
-                      Keep practicing consistently to build confidence and ace your next interview.
+                    <p className="mt-0.5 sm:mt-1 max-w-md text-[10px] sm:text-[13px] leading-[1.4] sm:leading-5 text-[#64748b]">
+                      Keep practicing to build confidence and ace your next interview.
                     </p>
                   </div>
                 </div>
-                <div className="relative grid w-full gap-2.5 sm:grid-cols-2 lg:w-[220px] lg:grid-cols-1">
+                <div className="relative grid w-full grid-cols-2 gap-1.5 sm:gap-2.5 lg:w-[220px] lg:grid-cols-1">
                   <Link
                     href="/interview/setup"
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-[#2563eb] px-5 text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+                    className="inline-flex h-7 sm:h-9 items-center justify-center gap-1 sm:gap-1.5 rounded-md bg-[#2563eb] px-2.5 sm:px-5 text-[11px] sm:text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
                   >
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" d="M12 5v14M5 12h14" />
                     </svg>
                     New Interview
                   </Link>
                   <Link
                     href={latestReportHref}
-                    className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[#dbe6f5] bg-white px-5 text-[13px] font-semibold text-[#334155] transition hover:bg-[#f8fbff]"
+                    className="inline-flex h-7 sm:h-9 items-center justify-center gap-1 sm:gap-1.5 rounded-md border border-[#dbe6f5] bg-white px-2.5 sm:px-5 text-[11px] sm:text-[13px] font-semibold text-[#334155] transition hover:bg-[#f8fbff]"
                   >
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 4h6l4 4v12H8a2 2 0 01-2-2V6a2 2 0 012-2z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M14 4v5h5M9 14h6M9 17h4" />
                     </svg>
-                    Review Last Report
+                    Review Report
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
               <StatCard
                 title="Total Interviews"
                 value={interviews.length.toString()}
@@ -573,9 +575,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
-              <div className="flex h-auto flex-col gap-3 px-5 py-4 sm:h-[56px] sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-[15px] font-bold leading-5 text-[#0f172a]">Score Trend</h2>
-                <div className="w-full sm:w-[160px]">
+              <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-5 sm:py-4 sm:h-[56px]">
+                <h2 className="text-[13px] sm:text-[15px] font-bold leading-5 text-[#0f172a]">Score Trend</h2>
+                <div className="w-[120px] sm:w-[160px]">
                   <FilterSelect
                     value={trendRange}
                     onChange={(value) => setTrendRange(value as TrendRange)}
@@ -587,12 +589,23 @@ export default function DashboardPage() {
                   />
                 </div>
               </div>
-              <div className="grid min-h-[280px] gap-0 border-t border-[#edf2f8] px-5 py-5 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <div className="relative h-[230px] bg-white pr-5">
+              <div className="grid min-h-0 sm:min-h-[280px] gap-0 border-t border-[#edf2f8] px-3 py-3 sm:px-5 sm:py-5 lg:grid-cols-[minmax(0,1fr)_220px]">
+                <div className="relative h-[150px] sm:h-[230px] bg-white pr-3 sm:pr-5">
+                  {[10, 5, 0].map((tick) => (
+                    <div
+                      key={tick}
+                      className="absolute left-0 right-0 border-t border-dashed border-[#dbe6f5] sm:hidden"
+                      style={{ top: `${((10 - tick) / 10) * 78 + 5}%` }}
+                    >
+                      <span className="absolute -top-2.5 left-0 bg-white pr-2 text-[10px] leading-3 text-[#64748b]">
+                        {tick}
+                      </span>
+                    </div>
+                  ))}
                   {[10, 7.5, 5, 2.5, 0].map((tick) => (
                     <div
                       key={tick}
-                      className="absolute left-0 right-0 border-t border-dashed border-[#dbe6f5]"
+                      className="absolute left-0 right-0 border-t border-dashed border-[#dbe6f5] hidden sm:block"
                       style={{ top: `${((10 - tick) / 10) * 78 + 5}%` }}
                     >
                       <span className="absolute -top-3 left-0 bg-white pr-3 text-xs leading-4 text-[#64748b]">
@@ -600,7 +613,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   ))}
-                  <div className="absolute bottom-0 left-14 right-4 h-7 text-xs leading-4 text-[#64748b]">
+                  <div className="absolute bottom-0 left-8 sm:left-14 right-2 sm:right-4 h-5 sm:h-7 text-[9px] sm:text-xs leading-3 sm:leading-4 text-[#64748b]">
                     {trendDateLabels.length > 0 ? (
                       trendDateLabels.map((point) => (
                         <span
@@ -618,22 +631,22 @@ export default function DashboardPage() {
                   {trendPoints.length > 0 ? (
                     <>
                       {trendPoints.length > 1 && (
-                        <div className="absolute bottom-12 left-14 right-4 top-5">
+                        <div className="absolute bottom-8 sm:bottom-12 left-8 sm:left-14 right-2 sm:right-4 top-3 sm:top-5">
                           <svg className="h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                             <polyline points={trendLine} fill="none" stroke="#2563eb" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </div>
                       )}
-                      <div className="absolute bottom-12 left-14 right-4 top-5">
+                      <div className="absolute bottom-8 sm:bottom-12 left-8 sm:left-14 right-2 sm:right-4 top-3 sm:top-5">
                         {trendPoints.map((point) => (
                           <span
                             key={point.id}
-                            className="absolute block h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#2563eb] shadow-[0_4px_10px_rgba(37,99,235,0.25)]"
+                            className="absolute block h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#2563eb] shadow-[0_4px_10px_rgba(37,99,235,0.25)]"
                             style={{ left: `${point.x}%`, top: `${point.y}%` }}
                             title={`${point.score}/10 on ${point.date}`}
                           >
                             {trendPoints.length <= 6 && (
-                              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold leading-4 text-[#334155]">
+                              <span className="absolute -top-5 sm:-top-8 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs font-semibold leading-3 sm:leading-4 text-[#334155]">
                                 {point.score}
                               </span>
                             )}
@@ -642,33 +655,40 @@ export default function DashboardPage() {
                       </div>
                     </>
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-sm font-medium text-slate-400">
+                    <div className="absolute inset-0 flex items-center justify-center text-[11px] sm:text-sm font-medium text-slate-400">
                       Scores will appear after your first evaluated interview.
                     </div>
                   )}
                 </div>
-                <div className="mt-4 border-t border-[#edf2f8] pt-4 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-                  <p className="text-[13px] font-medium leading-4 text-[#64748b]">Latest Score</p>
-                  <p className="mt-2 text-[36px] font-bold leading-none tracking-normal text-[#2563eb]">
-                    {latestScore !== null ? latestScore : "--"}<span className="text-lg font-semibold text-[#64748b]">/10</span>
-                  </p>
-                  {latestScore !== null && (
-                    <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#dcfce7] px-2.5 py-1 text-[13px] font-semibold text-[#16a34a]">
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
-                      </svg>
-                      {scoreTone(latestScore)}
-                    </span>
-                  )}
-                  {trendInterviews.length > 1 && (
-                    <div className="mt-3">
-                      <p className={`text-[15px] font-bold leading-5 ${trendDirection >= 0 ? "text-[#16a34a]" : "text-rose-600"}`}>
-                        {trendDirection >= 0 ? "Up" : "Down"} {Math.abs(trendDirection).toFixed(1)}
+                <div className="mt-3 border-t border-[#edf2f8] pt-3 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                  <div className="flex items-center gap-3 sm:block">
+                    <div>
+                      <p className="text-[11px] sm:text-[13px] font-medium leading-4 text-[#64748b]">Latest Score</p>
+                      <p className="mt-0.5 sm:mt-2 text-[22px] sm:text-[36px] font-bold leading-none tracking-normal text-[#2563eb]">
+                        {latestScore !== null ? latestScore : "--"}<span className="text-[11px] sm:text-lg font-semibold text-[#64748b]">/10</span>
                       </p>
-                      <p className="mt-0.5 text-[13px] leading-4 text-[#64748b]">from previous interview</p>
                     </div>
-                  )}
-                  <p className="mt-1 break-words text-[11px] leading-4 text-[#64748b]">
+                    <div className="flex flex-wrap items-center gap-2 sm:block">
+                      {latestScore !== null && (
+                        <span className="sm:mt-3 inline-flex items-center gap-1 rounded-md bg-[#dcfce7] px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[13px] font-semibold text-[#16a34a]">
+                          <svg className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
+                          </svg>
+                          {scoreTone(latestScore)}
+                        </span>
+                      )}
+                      {trendInterviews.length > 1 && (
+                        <div className="sm:mt-3">
+                          <p className={`text-[11px] sm:text-[15px] font-bold leading-4 sm:leading-5 ${trendDirection >= 0 ? "text-[#16a34a]" : "text-rose-600"}`}>
+                            {trendDirection >= 0 ? "Up" : "Down"} {Math.abs(trendDirection).toFixed(1)}
+                            <span className="font-normal text-[#64748b] sm:hidden"> from prev</span>
+                          </p>
+                          <p className="hidden sm:block mt-0.5 text-[13px] leading-4 text-[#64748b]">from previous interview</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="mt-1 break-words text-[10px] sm:text-[11px] leading-3 sm:leading-4 text-[#64748b]">
                     {trendLatest
                       ? `${formatDate(trendLatest.created_at)}${trendLatest.company_name ? ` · ${trendLatest.company_name}` : ""}`
                       : "No interviews yet"}
@@ -677,20 +697,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-[#dde7f5] bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="flex min-w-0 items-center gap-2 text-[15px] font-bold text-[#0f172a]">
-                  <svg className="h-5 w-5 shrink-0 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <div className="rounded-lg border border-[#dde7f5] bg-white p-3 sm:p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h2 className="flex min-w-0 items-center gap-1.5 sm:gap-2 text-[13px] sm:text-[15px] font-bold text-[#0f172a]">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z" />
                   </svg>
                   AI Agent Coaching Plan
                 </h2>
-                <span className="w-fit rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-600">
+                <span className="w-fit rounded-full bg-blue-50 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-semibold text-blue-600">
                   Personalized for you
                 </span>
               </div>
-              <div className="mt-3 grid gap-0 md:grid-cols-3">
+              <div className="mt-2 sm:mt-3 grid gap-0 md:grid-cols-3">
                 {(coachingPlan.length > 0 ? coachingPlan : [
                   {
                     category: "First interview",
@@ -702,20 +722,20 @@ export default function DashboardPage() {
                 ]).map((item, index) => (
                   <div
                     key={`${item.category}-${index}`}
-                    className="min-w-0 border-t border-[#edf2f8] py-5 md:border-l md:border-t-0 md:px-8 md:py-0 first:md:border-l-0 first:md:pl-0 last:md:pr-0"
+                    className="min-w-0 border-t border-[#edf2f8] py-2.5 sm:py-5 md:border-l md:border-t-0 md:px-8 md:py-0 first:md:border-l-0 first:md:pl-0 last:md:pr-0"
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1557ff] text-xs font-bold text-white">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <span className="flex h-5 w-5 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-[#1557ff] text-[10px] sm:text-xs font-bold text-white">
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <h3 className="break-words text-sm font-bold leading-5 text-slate-950">{item.title}</h3>
-                        <p className="mt-1.5 text-xs leading-5 text-slate-600">{item.description}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className={`rounded-md px-2.5 py-1 text-xs font-semibold ${index === 0 ? "bg-blue-50 text-blue-700" : "bg-green-50 text-green-700"}`}>
+                        <h3 className="break-words text-[12px] sm:text-sm font-bold leading-4 sm:leading-5 text-slate-950">{item.title}</h3>
+                        <p className="mt-0.5 sm:mt-1.5 text-[11px] sm:text-xs leading-4 sm:leading-5 text-slate-600">{item.description}</p>
+                        <div className="mt-1.5 sm:mt-3 flex flex-wrap gap-1.5 sm:gap-2">
+                          <span className={`rounded-md px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold ${index === 0 ? "bg-blue-50 text-blue-700" : "bg-green-50 text-green-700"}`}>
                             {index === 0 ? "Next" : "Suggested"}
                           </span>
-                          <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-slate-600">
                             5 min
                           </span>
                         </div>
@@ -727,15 +747,15 @@ export default function DashboardPage() {
             </div>
 
             <div className="overflow-hidden rounded-lg border border-[#dde7f5] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="flex flex-col gap-3 border-b border-[#edf2f8] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-                <h2 className="text-[18px] font-bold text-[#0f172a]">Interview History</h2>
-                <div className="grid w-full gap-2 sm:grid-cols-2 lg:max-w-[660px] lg:grid-cols-[minmax(180px,1fr)_118px_118px_88px]">
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <div className="flex flex-col gap-2 sm:gap-3 border-b border-[#edf2f8] px-3 py-2.5 sm:px-4 sm:py-3 lg:flex-row lg:items-center lg:justify-between">
+                <h2 className="text-[14px] sm:text-[18px] font-bold text-[#0f172a]">Interview History</h2>
+                <div className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-2 sm:gap-2 lg:max-w-[660px] lg:grid-cols-[minmax(180px,1fr)_118px_118px_88px]">
+                  <div className="relative col-span-2 sm:col-span-1">
+                    <svg className="absolute left-2.5 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 110-15 7.5 7.5 0 010 15z" />
                     </svg>
                     <input
-                      className="h-8 w-full rounded-md border border-[#d7e0ee] pl-9 pr-3 text-xs outline-none focus:border-blue-400"
+                      className="h-7 sm:h-8 w-full rounded-md border border-[#d7e0ee] pl-8 sm:pl-9 pr-2 sm:pr-3 text-[11px] sm:text-xs outline-none focus:border-blue-400"
                       placeholder="Search by company or role..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -767,9 +787,9 @@ export default function DashboardPage() {
                   <button
                     onClick={handleExport}
                     disabled={filteredInterviews.length === 0}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-[#d7e0ee] px-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="col-span-2 sm:col-span-1 inline-flex h-7 sm:h-8 items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-md border border-[#d7e0ee] px-2 text-[11px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 21h14" />
                     </svg>
                     Export
@@ -778,184 +798,237 @@ export default function DashboardPage() {
               </div>
 
               {loading ? (
-                <div className="space-y-3 p-5">
+                <div className="space-y-2 p-3 sm:space-y-3 sm:p-5">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 animate-pulse rounded-md bg-slate-100" />
+                    <div key={i} className="h-12 sm:h-16 animate-pulse rounded-md bg-slate-100" />
                   ))}
                 </div>
               ) : interviews.length === 0 ? (
-                <div className="px-5 py-12 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <div className="px-4 py-8 sm:px-5 sm:py-12 text-center">
+                  <div className="mx-auto flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <svg className="h-5 w-5 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                     </svg>
                   </div>
-                  <h3 className="mt-4 text-base font-bold text-slate-950">No interviews yet</h3>
-                  <p className="mt-1 text-sm text-slate-500">Start your first practice interview and your history will show here.</p>
-                  <Link href="/interview/setup" className="mt-5 inline-flex h-10 items-center rounded-md bg-blue-600 px-5 text-sm font-semibold text-white hover:bg-blue-700">
+                  <h3 className="mt-3 text-[13px] sm:text-base font-bold text-slate-950">No interviews yet</h3>
+                  <p className="mt-1 text-[11px] sm:text-sm text-slate-500">Start your first practice interview and your history will show here.</p>
+                  <Link href="/interview/setup" className="mt-4 inline-flex h-8 sm:h-10 items-center rounded-md bg-blue-600 px-4 sm:px-5 text-[12px] sm:text-sm font-semibold text-white hover:bg-blue-700">
                     Start First Interview
                   </Link>
                 </div>
               ) : filteredInterviews.length === 0 ? (
-                <div className="px-5 py-12 text-center">
-                  <h3 className="text-base font-bold text-slate-950">No matching interviews</h3>
-                  <p className="mt-1 text-sm text-slate-500">Try a different search, status, or date range.</p>
+                <div className="px-4 py-8 sm:px-5 sm:py-12 text-center">
+                  <h3 className="text-[13px] sm:text-base font-bold text-slate-950">No matching interviews</h3>
+                  <p className="mt-1 text-[11px] sm:text-sm text-slate-500">Try a different search, status, or date range.</p>
                   <button
                     onClick={clearFilters}
-                    className="mt-5 inline-flex h-10 items-center rounded-md border border-slate-200 px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    className="mt-4 inline-flex h-8 sm:h-10 items-center rounded-md border border-slate-200 px-4 sm:px-5 text-[12px] sm:text-sm font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     Clear filters
                   </button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-xs">
-                    <thead className="border-b border-[#edf2f8] bg-[#fbfdff] text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
-                      <tr>
-                        <th className="px-4 py-2.5">Company</th>
-                        <th className="px-4 py-2.5">Role</th>
-                        <th className="px-4 py-2.5">Level</th>
-                        <th className="px-4 py-2.5">Date</th>
-                        <th className="px-4 py-2.5">Status</th>
-                        <th className="px-4 py-2.5">Score</th>
-                        <th className="px-4 py-2.5">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#edf2f8]">
-                      {filteredInterviews.map((iv) => {
-                        const status = statusLabel(iv.status);
-                        return (
-                          <tr key={iv.id} className="hover:bg-[#fbfdff]">
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-3">
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#06112f] text-xs font-bold text-white">
-                                  {initials(iv.company_name)}
-                                </span>
-                                <span className="font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-slate-700">{iv.role_type || "Interview Practice"}</td>
-                            <td className="px-4 py-3 text-slate-700">{levelLabel(iv.level)}</td>
-                            <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDate(iv.created_at)}</td>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold ${status.color}`}>{status.text}</span>
-                            </td>
-                            <td className="px-4 py-3">
-                              {iv.overall_score !== null ? (
-                                <div>
-                                  <span className={`text-base font-bold ${scoreColor(iv.overall_score)}`}>{iv.overall_score}</span>
-                                  <span className="text-xs text-slate-500">/10</span>
-                                  <span className={`ml-2 inline-block h-2 w-2 rounded-full ${iv.overall_score >= 6 ? "bg-green-500" : "bg-rose-600"}`} />
+                <>
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="min-w-full text-left text-xs">
+                      <thead className="border-b border-[#edf2f8] bg-[#fbfdff] text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
+                        <tr>
+                          <th className="px-4 py-2.5">Company</th>
+                          <th className="px-4 py-2.5">Role</th>
+                          <th className="px-4 py-2.5">Level</th>
+                          <th className="px-4 py-2.5">Date</th>
+                          <th className="px-4 py-2.5">Status</th>
+                          <th className="px-4 py-2.5">Score</th>
+                          <th className="px-4 py-2.5">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#edf2f8]">
+                        {filteredInterviews.map((iv) => {
+                          const status = statusLabel(iv.status);
+                          return (
+                            <tr key={iv.id} className="hover:bg-[#fbfdff]">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#06112f] text-xs font-bold text-white">
+                                    {initials(iv.company_name)}
+                                  </span>
+                                  <span className="font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
                                 </div>
+                              </td>
+                              <td className="px-4 py-3 text-slate-700">{iv.role_type || "Interview Practice"}</td>
+                              <td className="px-4 py-3 text-slate-700">{levelLabel(iv.level)}</td>
+                              <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDate(iv.created_at)}</td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold ${status.color}`}>{status.text}</span>
+                              </td>
+                              <td className="px-4 py-3">
+                                {iv.overall_score !== null ? (
+                                  <div>
+                                    <span className={`text-base font-bold ${scoreColor(iv.overall_score)}`}>{iv.overall_score}</span>
+                                    <span className="text-xs text-slate-500">/10</span>
+                                    <span className={`ml-2 inline-block h-2 w-2 rounded-full ${iv.overall_score >= 6 ? "bg-green-500" : "bg-rose-600"}`} />
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-300">--</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <Link
+                                    href={interviewLink(iv)}
+                                    className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                  >
+                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M7 16l4-4 3 3 5-7M7 16V9M14 15V9M19 8v8" />
+                                    </svg>
+                                    {iv.overall_score !== null ? "View Report" : "Continue"}
+                                  </Link>
+                                  <button
+                                    onClick={() => handleDelete(iv.id)}
+                                    disabled={deleting === iv.id}
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
+                                    title="Delete interview"
+                                  >
+                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7l1 12h6l1-12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile cards */}
+                  <div className="sm:hidden divide-y divide-[#edf2f8]">
+                    {filteredInterviews.map((iv) => {
+                      const status = statusLabel(iv.status);
+                      return (
+                        <div key={iv.id} className="px-3 py-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#06112f] text-[10px] font-bold text-white">
+                                {initials(iv.company_name)}
+                              </span>
+                              <span className="truncate text-[12px] font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {iv.overall_score !== null ? (
+                                <span className={`text-[13px] font-bold ${scoreColor(iv.overall_score)}`}>
+                                  {iv.overall_score}<span className="text-[10px] font-normal text-slate-400">/10</span>
+                                </span>
                               ) : (
-                                <span className="text-slate-300">--</span>
+                                <span className="text-[11px] text-slate-300">--</span>
                               )}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
-                                <Link
-                                  href={interviewLink(iv)}
-                                  className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-                                >
-                                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M7 16l4-4 3 3 5-7M7 16V9M14 15V9M19 8v8" />
-                                  </svg>
-                                  {iv.overall_score !== null ? "View Report" : "Continue"}
-                                </Link>
-                                <button
-                                  onClick={() => handleDelete(iv.id)}
-                                  disabled={deleting === iv.id}
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
-                                  title="Delete interview"
-                                >
-                                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7l1 12h6l1-12" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-                    <span>Showing 1 to {filteredInterviews.length} of {interviews.length} interviews</span>
-                    <div className="flex items-center gap-2">
-                      <button className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Previous page">
-                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            </div>
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
+                            <span>{iv.role_type || "Practice"}</span>
+                            <span>{levelLabel(iv.level)}</span>
+                            <span>{formatDate(iv.created_at)}</span>
+                            <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${status.color}`}>{status.text}</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Link
+                              href={interviewLink(iv)}
+                              className="inline-flex h-6 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-2 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
+                            >
+                              {iv.overall_score !== null ? "View Report" : "Continue"}
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(iv.id)}
+                              disabled={deleting === iv.id}
+                              className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
+                              title="Delete"
+                            >
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7l1 12h6l1-12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2 sm:px-4 sm:py-3 text-[10px] sm:text-xs text-slate-500">
+                    <span>{filteredInterviews.length} of {interviews.length}</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <button className="inline-flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Previous page">
+                        <svg className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L9.17 10l3.6 3.71a.75.75 0 11-1.08 1.04l-4.1-4.25a.75.75 0 010-1.04l4.1-4.25a.75.75 0 011.1.02z" clipRule="evenodd" />
                         </svg>
                       </button>
-                      <button className="h-9 w-9 rounded-md bg-blue-600 font-semibold text-white">1</button>
-                      <button className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Next page">
-                        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <button className="h-6 w-6 sm:h-9 sm:w-9 rounded-md bg-blue-600 text-[10px] sm:text-xs font-semibold text-white">1</button>
+                      <button className="inline-flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Next page">
+                        <svg className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06l3.6-3.71-3.6-3.71a.75.75 0 111.08-1.04l4.1 4.25a.75.75 0 010 1.04l-4.1 4.25a.75.75 0 01-1.1-.02z" clipRule="evenodd" />
                         </svg>
                       </button>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </section>
 
           <aside className="space-y-2.5">
             <Panel>
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <Icon tone="blue">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 18h6M10 22h4M8.5 14.5a6 6 0 117 0c-.8.6-1.5 1.4-1.8 2.5h-3.4c-.3-1.1-1-1.9-1.8-2.5z" />
                   </svg>
                 </Icon>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-bold text-slate-950">Next Best Step</h3>
-                    <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-600">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <h3 className="text-[12px] sm:text-sm font-bold text-slate-950">Next Best Step</h3>
+                    <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-wide text-blue-600">
                       AI Recommended
                     </span>
                   </div>
                   {topSkillFocus ? (
                     <>
-                      <p className="mt-1.5 break-words text-sm font-bold text-slate-950">
+                      <p className="mt-1 sm:mt-1.5 break-words text-[12px] sm:text-sm font-bold text-slate-950">
                         Focus on {topSkillFocus.category}
                       </p>
-                      <p className="mt-1.5 text-[13px] leading-5 text-slate-600">
-                        Your {topSkillFocus.category.toLowerCase()} score is the lowest among all skills.
-                      </p>
-                      <p className="mt-1 text-[13px] leading-5 text-slate-600">
-                        Improving this area will have the biggest impact.
+                      <p className="mt-1 text-[11px] sm:text-[13px] leading-4 sm:leading-5 text-slate-600">
+                        Your {topSkillFocus.category.toLowerCase()} score is the lowest. Improving this area will have the biggest impact.
                       </p>
                     </>
                   ) : (
                     <>
-                      <p className="mt-2 text-sm font-bold text-slate-950">
+                      <p className="mt-1.5 text-[12px] sm:text-sm font-bold text-slate-950">
                         Start your first interview
                       </p>
-                      <p className="mt-2 text-[13px] leading-5 text-slate-600">
+                      <p className="mt-1 text-[11px] sm:text-[13px] leading-4 sm:leading-5 text-slate-600">
                         Your weakest skills will appear here after evaluation.
                       </p>
                     </>
                   )}
                 </div>
               </div>
-              <Link href="/interview/setup" className="mt-3 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[#1557ff] px-4 text-center text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(21,87,255,0.22)] hover:bg-[#0f49df]">
-                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <Link href="/interview/setup" className="mt-2 sm:mt-3 inline-flex min-h-7 sm:min-h-9 w-full items-center justify-center gap-1.5 rounded-md bg-[#1557ff] px-3 sm:px-4 text-center text-[11px] sm:text-[13px] font-semibold text-white shadow-[0_10px_20px_rgba(21,87,255,0.22)] hover:bg-[#0f49df]">
+                <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M6 4.75v10.5L15 10 6 4.75z" />
                 </svg>
                 Start focused practice
               </Link>
-              <p className="mt-2 text-center text-[10px] text-slate-500">Recommended by AI Agent</p>
+              <p className="mt-1.5 sm:mt-2 text-center text-[9px] sm:text-[10px] text-slate-500">Recommended by AI Agent</p>
             </Panel>
 
             <Panel>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-950">Skill Focus</h3>
+                <h3 className="text-[12px] sm:text-sm font-bold text-slate-950">Skill Focus</h3>
                 {skillFocus.length > 3 && (
                   <button
                     type="button"
                     onClick={() => setSkillFocusExpanded((expanded) => !expanded)}
-                    className="text-[11px] font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-[10px] sm:text-[11px] font-semibold text-blue-600 hover:text-blue-700"
                   >
                     {skillFocusExpanded ? "View less" : "View full report"}
                   </button>
@@ -979,28 +1052,28 @@ export default function DashboardPage() {
 
             <Panel>
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <Icon tone="blue">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 22a7 7 0 007-7c0-4-3-7-3-11-2.5 1.5-4 4-4 6-1.5-.8-2-2-2-3-2 1.6-4 4.2-4 8a7 7 0 007 7z" />
                     </svg>
                   </Icon>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-950">Practice Streak</h3>
-                    <p className="mt-0.5 text-lg font-bold text-slate-950 leading-tight">{practiceStreak.current_days}</p>
-                    <p className="text-xs text-slate-600">
+                    <h3 className="text-[12px] sm:text-sm font-bold text-slate-950">Practice Streak</h3>
+                    <p className="mt-0.5 text-[15px] sm:text-lg font-bold text-slate-950 leading-tight">{practiceStreak.current_days}</p>
+                    <p className="text-[10px] sm:text-xs text-slate-600">
                       {practiceStreak.current_days === 1 ? "day" : "days"}
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-7 gap-2 text-center text-[11px] text-slate-500">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[9px] sm:text-[11px] text-slate-500">
                   {WEEK_DAYS.map((day) => {
                     const active = practiceStreak.active_weekdays.includes(day.key);
                     return (
                       <div key={day.key}>
                         <div>{day.label}</div>
                         <div
-                          className={`mx-auto mt-1.5 h-3.5 w-3.5 rounded-full border ${
+                          className={`mx-auto mt-1 sm:mt-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full border ${
                             active
                               ? "border-green-500 bg-green-500"
                               : "border-slate-300"
@@ -1012,14 +1085,14 @@ export default function DashboardPage() {
                   })}
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-slate-500">
+              <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-slate-500">
                 {practiceStreak.current_days > 0
                   ? "Keep it going! Consistency builds confidence."
                   : stats.evaluated.length > 0
                     ? "Practice today to restart your streak."
                     : "Complete your first interview to start."}
               </p>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-slate-500">
                 Longest streak:{" "}
                 <span className="font-semibold text-slate-700">
                   {practiceStreak.longest_days} {practiceStreak.longest_days === 1 ? "day" : "days"}
@@ -1029,8 +1102,8 @@ export default function DashboardPage() {
 
             <Panel>
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-950">Getting Started Checklist</h3>
-                <span className="text-xs font-semibold text-green-600">
+                <h3 className="text-[12px] sm:text-sm font-bold text-slate-950">Getting Started Checklist</h3>
+                <span className="text-[10px] sm:text-xs font-semibold text-green-600">
                   {interviews.length > 0 ? "4 of 4" : "0 of 4"}
                 </span>
               </div>
@@ -1041,16 +1114,16 @@ export default function DashboardPage() {
             </Panel>
 
             <Panel>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Icon tone="blue">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-5" />
                   </svg>
                 </Icon>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-950">Private & Secure</h3>
-                  <p className="mt-0.5 text-[12px] leading-4 text-slate-600">
+                  <h3 className="text-[12px] sm:text-sm font-bold text-slate-950">Private & Secure</h3>
+                  <p className="mt-0.5 text-[10px] sm:text-[12px] leading-3 sm:leading-4 text-slate-600">
                     Your interview data is protected and only used for your reports.
                   </p>
                 </div>
@@ -1079,46 +1152,46 @@ function StatCard({
   progress?: number;
 }) {
   return (
-    <div className="relative h-[120px] min-w-0 overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white px-4 py-3.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
-      <div className="flex min-w-0 items-start gap-2.5">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
+    <div className="relative h-[80px] sm:h-[120px] min-w-0 overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white px-2.5 py-2 sm:px-4 sm:py-3.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
+      <div className="flex min-w-0 items-start gap-1.5 sm:gap-2.5">
+        <span className="flex h-7 w-7 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#eff6ff] text-[#2563eb]">
           {icon === "briefcase" && (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <svg className="h-4 w-4 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 7V6a2 2 0 012-2h2a2 2 0 012 2v1M5 7h14v12H5V7zM5 12h14" />
             </svg>
           )}
           {icon === "trend" && (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <svg className="h-4 w-4 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 18l5-5 4 4 7-9M16 8h4v4" />
             </svg>
           )}
           {icon === "star" && (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <svg className="h-4 w-4 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.5l2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.85 6.75 19.6l1-5.8L3.5 9.7l5.9-.9L12 3.5z" />
             </svg>
           )}
           {icon === "target" && (
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <svg className="h-4 w-4 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 20a8 8 0 100-16 8 8 0 000 16zM12 16a4 4 0 100-8 4 4 0 000 8zM12 13a1 1 0 100-2 1 1 0 000 2z" />
             </svg>
           )}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[12px] font-semibold leading-4 text-[#42526e]">{title}</p>
-          <p className="mt-1 truncate text-[22px] font-bold leading-none tracking-normal text-[#0f172a]">{value}</p>
+          <p className="truncate text-[10px] sm:text-[12px] font-semibold leading-3 sm:leading-4 text-[#42526e]">{title}</p>
+          <p className="mt-0.5 sm:mt-1 truncate text-[15px] sm:text-[22px] font-bold leading-none tracking-normal text-[#0f172a]">{value}</p>
         </div>
       </div>
       {sparkline && (
-        <div className="absolute right-4 top-[54px]">
+        <div className="absolute right-2 sm:right-4 top-[34px] sm:top-[54px] scale-[0.55] sm:scale-100 origin-top-right">
           <MiniSparkline />
         </div>
       )}
       {typeof progress === "number" && (
-        <div className="absolute bottom-[38px] left-4 right-4 h-1.5 overflow-hidden rounded-full bg-[#e8eef7]">
+        <div className="absolute bottom-[22px] sm:bottom-[38px] left-2.5 sm:left-4 right-2.5 sm:right-4 h-1 sm:h-1.5 overflow-hidden rounded-full bg-[#e8eef7]">
           <div className="h-full rounded-full bg-[#2563eb]" style={{ width: `${progress}%` }} />
         </div>
       )}
-      <p className="absolute bottom-3 left-4 right-4 truncate text-[12px] leading-4 text-[#64748b]">{subtitle}</p>
+      <p className="absolute bottom-1.5 sm:bottom-3 left-2.5 sm:left-4 right-2.5 sm:right-4 truncate text-[9px] sm:text-[12px] leading-3 sm:leading-4 text-[#64748b]">{subtitle}</p>
     </div>
   );
 }
@@ -1161,7 +1234,7 @@ function FilterSelect({
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-w-0 rounded-lg border border-[#dde7f5] bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <div className="min-w-0 rounded-lg border border-[#dde7f5] bg-white p-3 sm:p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       {children}
     </div>
   );
@@ -1234,25 +1307,25 @@ function SkillRow({
   const status = skillStatus(score);
 
   return (
-    <div className="mt-3">
-      <div className="flex min-w-0 items-start gap-2.5">
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
+    <div className="mt-2 sm:mt-3">
+      <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
+        <span className={`flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md sm:rounded-lg ${tone.icon}`}>
           {skillIcon(label)}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-start justify-between gap-2 text-[13px]">
-            <span className="min-w-0 break-words font-semibold leading-5 text-[#334155]">{label}</span>
-            <span className={`shrink-0 whitespace-nowrap text-[13px] font-bold ${tone.text}`}>{score.toFixed(1)}<span className="text-[11px] text-slate-500">/10</span></span>
+          <div className="flex min-w-0 items-start justify-between gap-2 text-[11px] sm:text-[13px]">
+            <span className="min-w-0 break-words font-semibold leading-4 sm:leading-5 text-[#334155]">{label}</span>
+            <span className={`shrink-0 whitespace-nowrap text-[11px] sm:text-[13px] font-bold ${tone.text}`}>{score.toFixed(1)}<span className="text-[10px] sm:text-[11px] text-slate-500">/10</span></span>
           </div>
-          <div className="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-center">
-            <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e8eef7]">
+          <div className="mt-1 sm:mt-1.5 flex flex-col gap-1 sm:gap-1.5 sm:flex-row sm:items-center">
+            <div className="h-1 sm:h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e8eef7]">
               <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${Math.max(8, score * 10)}%` }} />
             </div>
-            <span className="text-left text-[10px] leading-3 text-slate-500 sm:w-24 sm:text-right">
+            <span className="text-left text-[9px] sm:text-[10px] leading-3 text-slate-500 sm:w-24 sm:text-right">
               {status}
             </span>
           </div>
-          <p className="mt-0.5 text-[10px] leading-3 text-slate-400">
+          <p className="mt-0.5 text-[9px] sm:text-[10px] leading-3 text-slate-400">
             Based on {sampleCount} {sampleCount === 1 ? "interview" : "interviews"}
           </p>
         </div>
@@ -1263,9 +1336,9 @@ function SkillRow({
 
 function ChecklistItem({ done, label }: { done: boolean; label: string }) {
   return (
-    <div className="mt-2.5 flex min-w-0 items-center gap-2 text-[13px] text-slate-700">
-      <span className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border ${done ? "border-green-500 bg-green-500 text-white" : "border-slate-300 text-transparent"}`}>
-        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+    <div className="mt-2 sm:mt-2.5 flex min-w-0 items-center gap-1.5 sm:gap-2 text-[11px] sm:text-[13px] text-slate-700">
+      <span className={`flex h-4 w-4 sm:h-[18px] sm:w-[18px] items-center justify-center rounded-full border ${done ? "border-green-500 bg-green-500 text-white" : "border-slate-300 text-transparent"}`}>
+        <svg className="h-2.5 w-2.5 sm:h-3 sm:w-3" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.42 0L3.296 9.22a1 1 0 111.414-1.414l4.034 4.034 6.543-6.543a1 1 0 011.417-.006z" clipRule="evenodd" />
         </svg>
       </span>

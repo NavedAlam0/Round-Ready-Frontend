@@ -184,6 +184,9 @@ export default function InterviewReportPage({
           setContext(data.context || null);
           setLoading(false);
           if (pollRef.current) clearInterval(pollRef.current);
+        } else if (data.status === "incomplete") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          router.replace("/dashboard");
         } else if (pollCountRef.current >= MAX_POLLS) {
           setError("Report generation is taking too long. Please try refreshing the page.");
           setLoading(false);

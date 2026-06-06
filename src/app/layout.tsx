@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "RoundReady — Ace Your Next Interview",
   description:
     "Practice interviews with an AI interviewer that adapts to your resume. Real-time voice conversations and detailed feedback.",
+  icons: {
+    icon: "/RoundReady logo.png",
+    shortcut: "/RoundReady logo.png",
+    apple: "/RoundReady logo.png",
+  },
 };
 
 export default function RootLayout({

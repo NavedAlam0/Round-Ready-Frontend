@@ -15,8 +15,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b border-gray-200 bg-white px-6 sm:px-10 lg:px-16 py-3">
-      <div className="flex items-center justify-between">
+    <nav className="border-b border-gray-200 bg-white px-6 py-3 sm:px-8 lg:px-10">
+      <div className="mx-auto flex w-full max-w-[1560px] items-center justify-between">
         <Link href="/dashboard" className="text-lg font-bold text-gray-900">
           RoundReady
         </Link>

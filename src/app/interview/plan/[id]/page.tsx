@@ -108,6 +108,7 @@ export default function InterviewPlanPage({
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [regenerating, setRegenerating] = useState(false);
 
   // Animate through loading steps
   useEffect(() => {
@@ -199,8 +200,8 @@ export default function InterviewPlanPage({
 
   const difficultyColor = (d: number) => {
     if (d <= 1) return "bg-green-100 text-green-700 border border-green-200";
-    if (d <= 2) return "bg-green-100 text-green-700 border border-green-200";
-    if (d <= 3) return "bg-yellow-100 text-yellow-700 border border-yellow-200";
+    if (d <= 2) return "bg-blue-100 text-blue-600 border border-blue-200";
+    if (d <= 3) return "bg-orange-100 text-orange-700 border border-orange-200";
     return "bg-red-100 text-red-700 border border-red-200";
   };
 
@@ -222,9 +223,9 @@ export default function InterviewPlanPage({
     let easy = 0, medium = 0, moderate = 0;
     plan.categories.forEach((cat) =>
       cat.questions.forEach((q) => {
-        if (q.difficulty <= 2) easy++;
-        else if (q.difficulty <= 3) medium++;
-        else moderate++;
+        if (q.difficulty <= 1) easy++;
+        else if (q.difficulty <= 2) medium++;
+        else moderate++; // 3 = Moderate, 4 = Hard, 5 = Expert
       })
     );
     return { easy, medium, moderate };
@@ -283,6 +284,34 @@ export default function InterviewPlanPage({
     return plan?.categories.findIndex((c) => c.name === cat.name) ?? 0;
   }
 
+  async function regeneratePlan() {
+    setRegenerating(true);
+    setLoadingStep(0);
+    setLoading(true);
+    setError("");
+    try {
+      const res = await apiFetch(`/api/interview/${id}/plan?regenerate=true`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.detail || "Failed to regenerate plan");
+        return;
+      }
+      const data = await res.json();
+      setPlan(data.plan);
+      if (data.context) setContext(data.context);
+      if (data.plan?.categories) {
+        setExpandedCats(new Set(data.plan.categories.map((_: Category, i: number) => i)));
+      }
+    } catch {
+      setError("Failed to regenerate interview plan.");
+    } finally {
+      setLoading(false);
+      setRegenerating(false);
+    }
+  }
+
   const filterTabs = [
     { label: "All", icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -319,48 +348,71 @@ export default function InterviewPlanPage({
         /* ── Loading State ── */
         <main className="flex-1 flex items-center justify-center px-6">
           <div className="w-full max-w-lg text-center">
-            <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-100">
-              <svg className="h-10 w-10 text-blue-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+            {/* AI Agent Orb */}
+            <div className="mx-auto mb-4 relative" style={{ width: 160, height: 160 }}>
+              {/* Outer dashed orbit with 3 dots */}
+              <svg className="absolute inset-0 animate-[spin_25s_linear_infinite]" width="160" height="160" viewBox="0 0 160 160" fill="none">
+                <circle cx="80" cy="80" r="76" stroke="#c7d2e8" strokeWidth="0.8" strokeDasharray="5 3.5" />
+                <circle cx="80" cy="4" r="3.5" fill="#6b8abf" />
+                <circle cx="156" cy="80" r="4" fill="#7c9fd4" />
+                <circle cx="28" cy="142" r="3" fill="#94b3de" />
               </svg>
+              {/* Inner solid ring */}
+              <div className="absolute inset-[22px] rounded-full border border-blue-200/50" />
+              {/* Center glowing orb */}
+              <div className="absolute inset-[36px] rounded-full shadow-[0_0_35px_rgba(59,130,246,0.15)] flex items-center justify-center" style={{ background: "radial-gradient(circle, #ffffff 0%, #eff6ff 50%, #dbeafe 100%)" }}>
+                <svg width="44" height="36" viewBox="0 0 44 36" fill="none">
+                  {(() => {
+                    const bars = [3,5,8,5,11,14,8,17,22,26,30,32,30,26,22,17,11,14,8,6,9,5,6,3];
+                    return bars.map((h, i) => (
+                      <rect key={i} x={1.5 + i * 1.8} y={18 - h / 2} width="1.2" height={h} rx="0.6" fill="#2563eb" />
+                    ));
+                  })()}
+                </svg>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Generating Your Interview Plan</h1>
-            <p className="mt-2 text-gray-500">Our AI is crafting personalized questions based on your profile</p>
-            <div className="mt-8 mx-auto max-w-sm">
-              <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+            {/* AI agent working badge */}
+            <div className="mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full bg-green-50/80 border border-green-200/60 px-3 py-1">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-[13px] font-medium text-green-700">AI agent working</span>
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">Generating Your Interview Plan</h1>
+            <p className="mt-1 text-[13px] text-gray-500">Our AI is crafting personalized questions based on your profile</p>
+            <div className="mt-5 mx-auto max-w-xs">
+              <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
                 <div className="h-full rounded-full bg-blue-600 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((loadingStep + 1) / LOADING_STEPS.length) * 100, 95)}%` }} />
               </div>
             </div>
-            <div className="mt-8 space-y-3 mx-auto max-w-xs text-left">
+            <div className="mt-5 space-y-2.5 mx-auto max-w-xs text-left">
               {LOADING_STEPS.map((step, idx) => (
-                <div key={step.label} className="flex items-center gap-3">
+                <div key={step.label} className="flex items-center gap-2.5">
                   {idx < loadingStep ? (
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500">
-                      <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500">
+                      <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </div>
                   ) : idx === loadingStep ? (
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                     </div>
                   ) : (
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-gray-200" />
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-200" />
                   )}
-                  <span className={`text-sm ${idx < loadingStep ? "text-green-600 font-medium" : idx === loadingStep ? "text-gray-900 font-medium" : "text-gray-400"}`}>{step.label}</span>
+                  <span className={`text-[13px] ${idx < loadingStep ? "text-green-600 font-medium" : idx === loadingStep ? "text-gray-900 font-medium" : "text-gray-400"}`}>{step.label}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-10 rounded-xl bg-blue-50 border border-blue-100 p-4 mx-auto max-w-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 mt-0.5">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
+            <div className="mt-6 rounded-lg bg-blue-50 border border-blue-100 p-3 mx-auto max-w-xs">
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-600 mt-0.5">
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
                 </div>
                 <div className="text-left">
-                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Interview Tip</p>
-                  <p className="mt-1 text-sm text-blue-600 leading-relaxed">{TIPS[tipIndex]}</p>
+                  <p className="text-[11px] font-semibold text-blue-700 uppercase tracking-wide">Interview Tip</p>
+                  <p className="mt-0.5 text-[13px] text-blue-600 leading-relaxed">{TIPS[tipIndex]}</p>
                 </div>
               </div>
             </div>
-            <p className="mt-6 text-xs text-gray-400">This usually takes 10\u201315 seconds</p>
+            <p className="mt-4 text-[11px] text-gray-400">This usually takes 10–15 seconds</p>
           </div>
         </main>
       ) : error ? (
@@ -380,332 +432,384 @@ export default function InterviewPlanPage({
         </main>
       ) : plan ? (
         /* ── Plan View ── */
-        <div className="flex flex-1 overflow-hidden">
-          {/* Main Content */}
-          <main className="flex-1 overflow-y-auto px-6 sm:px-10 py-6">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Interview Plan</h1>
-                <p className="mt-1 text-sm text-gray-500">{totalQuestions} questions across {plan.categories.length} categories</p>
-              </div>
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                </svg>
-                Save Plan
-              </button>
-            </div>
-
-            {/* Filter Tabs + Search */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
-                {filterTabs.map((tab) => (
-                  <button
-                    key={tab.label}
-                    onClick={() => setActiveFilter(tab.label)}
-                    className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
-                      activeFilter === tab.label
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {tab.icon}
-                    <span className="hidden sm:inline">{tab.label}</span>
+        <div className="flex-1 overflow-y-auto">
+          {/* Header Section */}
+          <div className="border-b border-gray-200 bg-white">
+            <div className="max-w-7xl mx-auto px-6 sm:px-10 py-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h1 className="text-xl font-bold text-gray-900">Interview Plan</h1>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                      <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                      Plan ready
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-gray-500">AI-generated practice blueprint tailored to your profile</p>
+                  {/* Context Tags */}
+                  <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                    {context?.role_type && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-100 px-2.5 py-0.5 text-xs text-blue-700">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg>
+                        {context.role_type}
+                      </span>
+                    )}
+                    {context?.company_name && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-100 px-2.5 py-0.5 text-xs text-purple-700">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5z" /></svg>
+                        {context.company_name}
+                      </span>
+                    )}
+                    {context?.level && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2.5 py-0.5 text-xs text-amber-700">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
+                        {context.level === "entry" ? "Entry Level" : context.level === "mid" ? "Mid Level" : context.level === "senior" ? "Senior" : context.level}
+                      </span>
+                    )}
+                    {context?.employment_type && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-xs text-gray-600">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {context.employment_type === "full_time" ? "Full Time" : context.employment_type === "part_time" ? "Part Time" : context.employment_type === "contract" ? "Contract" : context.employment_type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>
+                    Save Plan
                   </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-64">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search questions or topics..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
-                  />
+                  <button
+                    onClick={regeneratePlan}
+                    disabled={regenerating}
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    <svg className={`h-4 w-4 ${regenerating ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" /></svg>
+                    {regenerating ? "Regenerating..." : "Regenerate"}
+                  </button>
+                  <button
+                    onClick={() => router.push(`/interview/session/${id}`)}
+                    className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-500 transition shadow-sm"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" /></svg>
+                    Begin Interview
+                  </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Categories */}
-            <div className="space-y-5 pb-8">
-              {filteredCategories.map((category) => {
-                const origIdx = getOriginalIndex(category);
-                const isExpanded = expandedCats.has(origIdx);
-                const catNum = origIdx + 1;
-                const estCatTime = category.questions.length * 5;
+          {/* Stat Cards */}
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 py-5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+                    <svg className="h-4.5 w-4.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{totalQuestions}</p>
+                    <p className="text-[11px] text-gray-500">Questions</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50">
+                    <svg className="h-4.5 w-4.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{plan.categories.length}</p>
+                    <p className="text-[11px] text-gray-500">Categories</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50">
+                    <svg className="h-4.5 w-4.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">~{estimatedTime} min</p>
+                    <p className="text-[11px] text-gray-500">Estimated Time</p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50">
+                    <svg className="h-4.5 w-4.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">Ready</p>
+                    <p className="text-[11px] text-gray-500">Voice Agent</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                return (
-                  <section key={category.name} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                    {/* Category Header */}
+          {/* Main Content + Sidebar */}
+          <div className="max-w-7xl mx-auto px-6 sm:px-10 pb-8 flex gap-6">
+            {/* Left: Questions */}
+            <div className="flex-1 min-w-0">
+              {/* Filter Tabs + Search */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+                <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                  {filterTabs.map((tab) => (
                     <button
-                      onClick={() => toggleCategory(origIdx)}
-                      className="w-full flex items-center gap-4 px-6 py-4 text-left hover:bg-gray-50 transition"
+                      key={tab.label}
+                      onClick={() => setActiveFilter(tab.label)}
+                      className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition ${
+                        activeFilter === tab.label
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      }`}
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <CategoryIcon name={category.name} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
-                          <h2 className="text-base font-semibold text-gray-900">
-                            {catNum}. {category.name}
-                          </h2>
-                          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-                            {category.questions.length} Questions
-                          </span>
-                          <span className="hidden sm:flex items-center gap-1 text-xs text-gray-400">
-                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            ~{estCatTime} min
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-gray-500 truncate">
-                          Tests: {Array.from(new Set(category.questions.map((q) => q.skill_tested))).join(", ")}
-                        </p>
-                      </div>
-                      <svg className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                      </svg>
+                      {tab.icon}
+                      <span className="hidden sm:inline">{tab.label}</span>
                     </button>
+                  ))}
+                </div>
+                <div className="relative w-full sm:w-56">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                  <input
+                    type="text"
+                    placeholder="Search questions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 py-1.5 text-[13px] text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                  />
+                </div>
+              </div>
 
-                    {/* Questions */}
-                    {isExpanded && (
-                      <div className="border-t border-gray-100">
+              {/* Question Cards by Category */}
+              <div className="space-y-6">
+                {filteredCategories.map((category) => {
+                  const origIdx = getOriginalIndex(category);
+                  const catNum = origIdx + 1;
+
+                  return (
+                    <div key={category.name}>
+                      {/* Category Label */}
+                      <div className="flex items-center gap-2.5 mb-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                          <CategoryIcon name={category.name} />
+                        </div>
+                        <h2 className="text-[14px] font-semibold text-gray-900">{catNum}. {category.name}</h2>
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">{category.questions.length}</span>
+                      </div>
+
+                      {/* Individual Question Cards */}
+                      <div className="space-y-2.5">
                         {category.questions.map((q, qIdx) => {
                           const skills = q.skill_tested.split(",").map((s) => s.trim()).filter(Boolean);
                           return (
-                            <div key={qIdx} className="flex items-start gap-4 px-6 py-4 border-b border-gray-50 last:border-b-0 hover:bg-gray-50/50 transition">
-                              <span className="mt-0.5 text-sm font-medium text-gray-400 w-8 shrink-0">
-                                {catNum}.{qIdx + 1}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-gray-900 leading-relaxed">{q.text}</p>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${difficultyColor(q.difficulty)}`}>
+                            <div key={qIdx} className="rounded-xl border border-gray-200 bg-white p-4 hover:border-gray-300 transition">
+                              {/* Question number + Tags row */}
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="text-[11px] font-medium text-gray-400">{catNum}.{qIdx + 1}</span>
+                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${difficultyColor(q.difficulty)}`}>
                                   {difficultyLabel(q.difficulty)}
                                 </span>
-                                {skills.slice(0, 2).map((skill) => (
-                                  <span key={skill} className="hidden lg:inline-flex rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600">
+                                {skills.map((skill) => (
+                                  <span key={skill} className="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] text-gray-600">
                                     {skill}
                                   </span>
                                 ))}
                               </div>
+                              {/* Question text */}
+                              <p className="text-[13px] text-gray-900 leading-relaxed">{q.text}</p>
+                              {/* Why this matters */}
+                              {q.follow_up_hints && q.follow_up_hints.length > 0 && (
+                                <div className="mt-3 pt-2.5 border-t border-gray-100">
+                                  <p className="text-[11px] text-gray-400 font-medium mb-1">Why this matters</p>
+                                  <p className="text-[12px] text-gray-500 leading-relaxed">{q.follow_up_hints[0]}</p>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
                       </div>
-                    )}
-                  </section>
-                );
-              })}
+                    </div>
+                  );
+                })}
 
-              {filteredCategories.length === 0 && (
-                <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
-                  <p className="text-sm text-gray-500">No questions match your search.</p>
-                </div>
-              )}
+                {filteredCategories.length === 0 && (
+                  <div className="rounded-xl border border-gray-200 bg-white p-10 text-center">
+                    <p className="text-[13px] text-gray-500">No questions match your search.</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </main>
 
-          {/* Right Sidebar */}
-          <aside className="hidden xl:block w-[340px] shrink-0 border-l border-gray-200 bg-white overflow-y-auto">
-            <div className="p-6 space-y-6">
-              {/* Interview Summary */}
-              <div>
-                <h3 className="text-base font-bold text-gray-900 mb-4">Interview Summary</h3>
-                <div className="grid grid-cols-2 gap-3 overflow-hidden">
-                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                      </svg>
-                      <span className="text-xs text-gray-500">Total Questions</span>
+            {/* Right Sidebar */}
+            <aside className="hidden xl:block w-[300px] shrink-0">
+              <div className="space-y-5 sticky top-4">
+                {/* Interview Summary */}
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="text-[13px] font-bold text-gray-900 mb-3">Interview Summary</h3>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="rounded-lg bg-gray-50 p-2.5">
+                      <p className="text-lg font-bold text-gray-900">{totalQuestions}</p>
+                      <p className="text-[11px] text-gray-500">Questions</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{totalQuestions}</p>
-                  </div>
-                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                      </svg>
-                      <span className="text-xs text-gray-500">Categories</span>
+                    <div className="rounded-lg bg-gray-50 p-2.5">
+                      <p className="text-lg font-bold text-gray-900">{plan.categories.length}</p>
+                      <p className="text-[11px] text-gray-500">Categories</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{plan.categories.length}</p>
-                  </div>
-                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-xs text-gray-500">Estimated Time</span>
+                    <div className="rounded-lg bg-gray-50 p-2.5">
+                      <p className="text-lg font-bold text-gray-900">~{estimatedTime}m</p>
+                      <p className="text-[11px] text-gray-500">Est. Time</p>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">~{estimatedTime} min</p>
-                  </div>
-                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <svg className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                      </svg>
-                      <span className="text-xs text-gray-500">Difficulty Mix</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 mt-1">
-                      <span className="text-[10px] font-medium text-green-600">Easy</span>
-                      <span className="text-[10px] text-gray-300">&bull;</span>
-                      <span className="text-[10px] font-medium text-yellow-600">Medium</span>
-                      <span className="text-[10px] text-gray-300">&bull;</span>
-                      <span className="text-[10px] font-medium text-orange-600">Moderate</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Categories List */}
-              <div className="border-t border-gray-100 pt-5">
-                <h3 className="text-sm font-bold text-gray-900 mb-3">Categories ({plan.categories.length})</h3>
-                <div className="space-y-2.5">
-                  {plan.categories.map((cat, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setActiveFilter("All");
-                        setExpandedCats(new Set([idx]));
-                        // Scroll to category
-                      }}
-                      className="w-full flex items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-gray-50 transition"
-                    >
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-                        <CategoryIcon name={cat.name} />
+                    <div className="rounded-lg bg-gray-50 p-2.5">
+                      <div className="flex items-center gap-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                        <p className="text-[11px] font-medium text-green-700">Ready</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 truncate">{idx + 1}. {cat.name}</p>
+                      <p className="text-[11px] text-gray-500">Voice Agent</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Difficulty Distribution */}
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="text-[13px] font-bold text-gray-900 mb-3">Difficulty Distribution</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="relative h-20 w-20 shrink-0">
+                      <svg className="h-20 w-20 -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#f3f4f6" strokeWidth="10" />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#22c55e" strokeWidth="10" strokeDasharray={`${(dist.easy / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`} strokeDashoffset="0" />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#60a5fa" strokeWidth="10" strokeDasharray={`${(dist.medium / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`} strokeDashoffset={`${-(dist.easy / totalQuestions) * 2 * Math.PI * 38}`} />
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="#f97316" strokeWidth="10" strokeDasharray={`${(dist.moderate / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`} strokeDashoffset={`${-((dist.easy + dist.medium) / totalQuestions) * 2 * Math.PI * 38}`} />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-base font-bold text-gray-900">{totalQuestions}</span>
+                        <span className="text-[9px] text-gray-400">Total</span>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">{cat.questions.length} questions</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Difficulty Distribution */}
-              <div className="border-t border-gray-100 pt-5">
-                <h3 className="text-sm font-bold text-gray-900 mb-4">Difficulty Distribution</h3>
-                <div className="flex items-center gap-5">
-                  {/* Donut chart */}
-                  <div className="relative h-24 w-24 shrink-0">
-                    <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="38" fill="none" stroke="#f3f4f6" strokeWidth="10" />
-                      {/* Easy - green */}
-                      <circle
-                        cx="50" cy="50" r="38"
-                        fill="none" stroke="#22c55e" strokeWidth="10"
-                        strokeDasharray={`${(dist.easy / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`}
-                        strokeDashoffset="0"
-                      />
-                      {/* Medium - yellow */}
-                      <circle
-                        cx="50" cy="50" r="38"
-                        fill="none" stroke="#eab308" strokeWidth="10"
-                        strokeDasharray={`${(dist.medium / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`}
-                        strokeDashoffset={`${-(dist.easy / totalQuestions) * 2 * Math.PI * 38}`}
-                      />
-                      {/* Moderate - orange */}
-                      <circle
-                        cx="50" cy="50" r="38"
-                        fill="none" stroke="#f97316" strokeWidth="10"
-                        strokeDasharray={`${(dist.moderate / totalQuestions) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`}
-                        strokeDashoffset={`${-((dist.easy + dist.medium) / totalQuestions) * 2 * Math.PI * 38}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-bold text-gray-900">{totalQuestions}</span>
-                      <span className="text-[10px] text-gray-400">Total</span>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                      <span className="text-sm text-gray-700">Easy</span>
-                      <span className="text-sm text-gray-400 ml-auto">{dist.easy} ({totalQuestions > 0 ? Math.round((dist.easy / totalQuestions) * 100) : 0}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
-                      <span className="text-sm text-gray-700">Medium</span>
-                      <span className="text-sm text-gray-400 ml-auto">{dist.medium} ({totalQuestions > 0 ? Math.round((dist.medium / totalQuestions) * 100) : 0}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                      <span className="text-sm text-gray-700">Moderate</span>
-                      <span className="text-sm text-gray-400 ml-auto">{dist.moderate} ({totalQuestions > 0 ? Math.round((dist.moderate / totalQuestions) * 100) : 0}%)</span>
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-green-500" />
+                          <span className="text-[12px] text-gray-700">Easy</span>
+                        </div>
+                        <span className="text-[12px] text-gray-400">{dist.easy}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-blue-400" />
+                          <span className="text-[12px] text-gray-700">Medium</span>
+                        </div>
+                        <span className="text-[12px] text-gray-400">{dist.medium}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-orange-500" />
+                          <span className="text-[12px] text-gray-700">Moderate</span>
+                        </div>
+                        <span className="text-[12px] text-gray-400">{dist.moderate}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Your Context */}
-              {context && (
-                <div className="border-t border-gray-100 pt-5">
-                  <h3 className="text-sm font-bold text-gray-900 mb-3">Your Context</h3>
+                {/* AI Agent Focus */}
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="text-[13px] font-bold text-gray-900 mb-3">AI Agent Focus</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-500">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg>
-                        Role
-                      </span>
-                      <span className="font-medium text-gray-900">{context.role_type || "\u2014"}</span>
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 mt-0.5">
+                        <svg className="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-gray-900">Natural Conversation</p>
+                        <p className="text-[11px] text-gray-500">AI adapts follow-ups based on your responses</p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-500">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5z" /></svg>
-                        Company
-                      </span>
-                      <span className="font-medium text-gray-900">{context.company_name || "\u2014"}</span>
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-50 mt-0.5">
+                        <svg className="h-3.5 w-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" /></svg>
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-gray-900">Real-time Scoring</p>
+                        <p className="text-[11px] text-gray-500">Instant feedback on each answer</p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-500">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
-                        Experience
-                      </span>
-                      <span className="font-medium text-gray-900">
-                        {context.years_of_experience ?? 0} years ({context.level === "entry" ? "Entry Level" : "Experienced"})
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-gray-500">
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Employment Type
-                      </span>
-                      <span className="font-medium text-gray-900 capitalize">{context.employment_type?.replace("_", " ") || "\u2014"}</span>
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50 mt-0.5">
+                        <svg className="h-3.5 w-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" /></svg>
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-gray-900">Detailed Report</p>
+                        <p className="text-[11px] text-gray-500">Comprehensive analysis after interview</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Begin Interview Button */}
-              <div className="border-t border-gray-100 pt-5">
+                {/* Categories */}
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="text-[13px] font-bold text-gray-900 mb-3">Categories</h3>
+                  <div className="space-y-2">
+                    {plan.categories.map((cat, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setActiveFilter("All");
+                          setExpandedCats(new Set([idx]));
+                        }}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-gray-50 transition"
+                      >
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-500">
+                          <CategoryIcon name={cat.name} />
+                        </div>
+                        <p className="text-[12px] text-gray-900 truncate flex-1">{cat.name}</p>
+                        <span className="text-[11px] text-gray-400 shrink-0">{cat.questions.length}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Your Context */}
+                {context && (
+                  <div className="rounded-xl border border-gray-200 bg-white p-4">
+                    <h3 className="text-[13px] font-bold text-gray-900 mb-3">Your Context</h3>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-gray-500">Role</span>
+                        <span className="text-[12px] font-medium text-gray-900">{context.role_type || "\u2014"}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-gray-500">Company</span>
+                        <span className="text-[12px] font-medium text-gray-900">{context.company_name || "\u2014"}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-gray-500">Experience</span>
+                        <span className="text-[12px] font-medium text-gray-900">{context.years_of_experience ?? 0} years</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] text-gray-500">Level</span>
+                        <span className="text-[12px] font-medium text-gray-900 capitalize">{context.level || "\u2014"}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Begin Interview Button */}
                 <button
                   onClick={() => router.push(`/interview/session/${id}`)}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white shadow-lg hover:bg-blue-500 transition"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-[13px] font-semibold text-white shadow-lg hover:bg-blue-500 transition"
                 >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                  </svg>
+                  <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" /></svg>
                   Begin Interview
                 </button>
-                <p className="mt-2 text-xs text-center text-gray-400">
-                  You can not pause or go back once started.
+                <p className="text-[11px] text-center text-gray-400 -mt-3">
+                  You cannot pause or go back once started.
                 </p>
               </div>
-            </div>
-          </aside>
+            </aside>
+          </div>
         </div>
       ) : null}
     </div>

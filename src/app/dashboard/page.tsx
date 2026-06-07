@@ -38,6 +38,7 @@ interface SkillFocusItem {
 type StatusFilter = "all" | "setup" | "planned" | "in_progress" | "completed" | "evaluated";
 type DateFilter = "all" | "7d" | "30d" | "90d";
 type TrendRange = "all" | "30d" | "90d";
+type TrendMode = "all" | "coding" | "interview";
 
 const WEEK_DAYS = [
   { label: "M", key: "mon" },
@@ -274,11 +275,8 @@ export default function DashboardPage() {
   const [practiceStreak, setPracticeStreak] = useState<PracticeStreak>(EMPTY_STREAK);
   const [skillFocus, setSkillFocus] = useState<SkillFocusItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [trendRange, setTrendRange] = useState<TrendRange>("all");
+  const [trendMode, setTrendMode] = useState<TrendMode>("all");
   const [skillFocusExpanded, setSkillFocusExpanded] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
@@ -326,21 +324,6 @@ export default function DashboardPage() {
     void Promise.resolve().then(fetchDashboardData);
   }, [authUser, authLoading, fetchDashboardData, router]);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this interview?")) return;
-    setDeleting(id);
-    try {
-      const res = await apiFetch(`/api/interview/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setInterviews((prev) => prev.filter((iv) => iv.id !== id));
-        void fetchDashboardData();
-      }
-    } catch (e) {
-      console.error("Failed to delete interview:", e);
-    } finally {
-      setDeleting(null);
-    }
-  }
 
   const user = {
     full_name: authUser?.displayName || authUser?.email?.split("@")[0] || "User",
@@ -367,43 +350,27 @@ export default function DashboardPage() {
     };
   }, [interviews]);
 
-  const filteredInterviews = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-
-    return interviews.filter((iv) => {
-      const searchableText = [
-        iv.company_name,
-        iv.role_type,
-        iv.level,
-        iv.employment_type,
-        iv.interview_mode,
-        iv.coding_problem_title,
-        iv.coding_language,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      const matchesSearch = !query || searchableText.includes(query);
-      const matchesStatus = statusFilter === "all" || iv.status === statusFilter;
-      const matchesDate = matchesDateFilter(iv.created_at, dateFilter);
-
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [dateFilter, interviews, searchQuery, statusFilter]);
 
   const trendInterviews = useMemo(() => {
     return stats.scored
       .filter((iv) => matchesDateFilter(iv.created_at, trendRange))
+      .filter((iv) => {
+        if (trendMode === "coding") return iv.interview_mode === "coding";
+        if (trendMode === "interview") return iv.interview_mode !== "coding";
+        return true;
+      })
       .sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
-  }, [stats.scored, trendRange]);
+  }, [stats.scored, trendRange, trendMode]);
 
   const trendPoints = useMemo(() => {
     const count = trendInterviews.length;
+    const pad = count <= 3 ? 5 : 0; // inset so edge labels don't clip
     return trendInterviews.map((iv, index) => {
       const score = iv.overall_score || 0;
+      const rawX = count === 1 ? 50 : (index / (count - 1)) * 100;
       return {
         id: iv.id,
-        x: count === 1 ? 50 : (index / (count - 1)) * 100,
+        x: count === 1 ? 50 : pad + (rawX / 100) * (100 - 2 * pad),
         y: 100 - score * 10,
         score,
         date: formatDate(iv.created_at),
@@ -426,35 +393,6 @@ export default function DashboardPage() {
     return trendPoints.filter((_, index) => indexes.has(index));
   }, [trendPoints]);
 
-  function clearFilters() {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setDateFilter("all");
-  }
-
-  function handleExport() {
-    if (filteredInterviews.length === 0) return;
-
-    const headers = ["Company", "Type", "Role", "Level", "Employment Type", "Date", "Status", "Score"];
-    const rows = filteredInterviews.map((iv) => [
-      iv.company_name || "Practice Interview",
-      iv.interview_mode === "coding" ? "Coding" : "Voice",
-      iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "") : (iv.role_type || ""),
-      levelLabel(iv.level),
-      iv.employment_type || "",
-      formatDate(iv.created_at),
-      statusLabel(iv.status).text,
-      iv.overall_score !== null ? `${iv.overall_score}/10` : "",
-    ]);
-    const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "roundready-interviews.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
 
   if (authLoading || !authUser)
     return (
@@ -589,16 +527,37 @@ export default function DashboardPage() {
             <div className="overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-5 sm:py-4 sm:h-[56px]">
                 <h2 className="text-[13px] sm:text-[15px] font-bold leading-5 text-[#0f172a]">Score Trend</h2>
-                <div className="w-[120px] sm:w-[160px]">
-                  <FilterSelect
-                    value={trendRange}
-                    onChange={(value) => setTrendRange(value as TrendRange)}
-                    options={[
-                      { value: "all", label: "All Time" },
-                      { value: "30d", label: "Last 30 Days" },
-                      { value: "90d", label: "Last 90 Days" },
-                    ]}
-                  />
+                <div className="flex items-center gap-2">
+                  <div className="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
+                    {([
+                      { value: "all", label: "All" },
+                      { value: "coding", label: "Coding" },
+                      { value: "interview", label: "Interview" },
+                    ] as const).map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setTrendMode(opt.value)}
+                        className={`rounded px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium transition-colors ${
+                          trendMode === opt.value
+                            ? "bg-white text-gray-900 shadow-sm"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="w-[120px] sm:w-[160px]">
+                    <FilterSelect
+                      value={trendRange}
+                      onChange={(value) => setTrendRange(value as TrendRange)}
+                      options={[
+                        { value: "all", label: "All Time" },
+                        { value: "30d", label: "Last 30 Days" },
+                        { value: "90d", label: "Last 90 Days" },
+                      ]}
+                    />
+                  </div>
                 </div>
               </div>
               <div className="grid min-h-0 sm:min-h-[280px] gap-0 border-t border-[#edf2f8] px-3 py-3 sm:px-5 sm:py-5 lg:grid-cols-[minmax(0,1fr)_220px]">
@@ -758,256 +717,26 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-[#dde7f5] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="flex flex-col gap-2 sm:gap-3 border-b border-[#edf2f8] px-3 py-2.5 sm:px-4 sm:py-3 lg:flex-row lg:items-center lg:justify-between">
-                <h2 className="text-[14px] sm:text-[18px] font-bold text-[#0f172a]">Interview History</h2>
-                <div className="grid w-full grid-cols-2 gap-1.5 sm:grid-cols-2 sm:gap-2 lg:max-w-[660px] lg:grid-cols-[minmax(180px,1fr)_118px_118px_88px]">
-                  <div className="relative col-span-2 sm:col-span-1">
-                    <svg className="absolute left-2.5 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 110-15 7.5 7.5 0 010 15z" />
-                    </svg>
-                    <input
-                      className="h-7 sm:h-8 w-full rounded-md border border-[#d7e0ee] pl-8 sm:pl-9 pr-2 sm:pr-3 text-[11px] sm:text-xs outline-none focus:border-blue-400"
-                      placeholder="Search by company or role..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <FilterSelect
-                    value={statusFilter}
-                    onChange={(value) => setStatusFilter(value as StatusFilter)}
-                    options={[
-                      { value: "all", label: "All Status" },
-                      { value: "evaluated", label: "Evaluated" },
-                      { value: "completed", label: "Completed" },
-                      { value: "in_progress", label: "In Progress" },
-                      { value: "planned", label: "Ready" },
-                      { value: "setup", label: "Setup" },
-                    ]}
-                  />
-                  <FilterSelect
-                    value={dateFilter}
-                    onChange={(value) => setDateFilter(value as DateFilter)}
-                    options={[
-                      { value: "all", label: "All Time" },
-                      { value: "7d", label: "Last 7 Days" },
-                      { value: "30d", label: "Last 30 Days" },
-                      { value: "90d", label: "Last 90 Days" },
-                    ]}
-                    icon="calendar"
-                  />
-                  <button
-                    onClick={handleExport}
-                    disabled={filteredInterviews.length === 0}
-                    className="col-span-2 sm:col-span-1 inline-flex h-7 sm:h-8 items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap rounded-md border border-[#d7e0ee] px-2 text-[11px] sm:text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l4-4m-4 4l-4-4M5 21h14" />
-                    </svg>
-                    Export
-                  </button>
+            {/* Interview History Link */}
+            <Link
+              href="/history"
+              className="flex items-center justify-between rounded-lg border border-[#dde7f5] bg-white px-4 py-3 sm:px-5 sm:py-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)] hover:bg-slate-50 transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-[13px] sm:text-[15px] font-bold text-[#0f172a]">Interview History</h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500">{interviews.length} total interviews</p>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="space-y-2 p-3 sm:space-y-3 sm:p-5">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-12 sm:h-16 animate-pulse rounded-md bg-slate-100" />
-                  ))}
-                </div>
-              ) : interviews.length === 0 ? (
-                <div className="px-4 py-8 sm:px-5 sm:py-12 text-center">
-                  <div className="mx-auto flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <svg className="h-5 w-5 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                    </svg>
-                  </div>
-                  <h3 className="mt-3 text-[13px] sm:text-base font-bold text-slate-950">No interviews yet</h3>
-                  <p className="mt-1 text-[11px] sm:text-sm text-slate-500">Start your first practice interview and your history will show here.</p>
-                  <Link href="/interview/setup" className="mt-4 inline-flex h-8 sm:h-10 items-center rounded-md bg-blue-600 px-4 sm:px-5 text-[12px] sm:text-sm font-semibold text-white hover:bg-blue-700">
-                    Start First Interview
-                  </Link>
-                </div>
-              ) : filteredInterviews.length === 0 ? (
-                <div className="px-4 py-8 sm:px-5 sm:py-12 text-center">
-                  <h3 className="text-[13px] sm:text-base font-bold text-slate-950">No matching interviews</h3>
-                  <p className="mt-1 text-[11px] sm:text-sm text-slate-500">Try a different search, status, or date range.</p>
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 inline-flex h-8 sm:h-10 items-center rounded-md border border-slate-200 px-4 sm:px-5 text-[12px] sm:text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                  >
-                    Clear filters
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {/* Desktop table */}
-                  <div className="hidden sm:block overflow-x-auto">
-                    <table className="min-w-full text-left text-xs">
-                      <thead className="border-b border-[#edf2f8] bg-[#fbfdff] text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
-                        <tr>
-                          <th className="px-4 py-2.5">Company</th>
-                          <th className="px-4 py-2.5">Type</th>
-                          <th className="px-4 py-2.5">Role</th>
-                          <th className="px-4 py-2.5">Level</th>
-                          <th className="px-4 py-2.5">Date</th>
-                          <th className="px-4 py-2.5">Status</th>
-                          <th className="px-4 py-2.5">Score</th>
-                          <th className="px-4 py-2.5">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#edf2f8]">
-                        {filteredInterviews.map((iv) => {
-                          const status = statusLabel(iv.status);
-                          return (
-                            <tr key={iv.id} className="hover:bg-[#fbfdff]">
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#06112f] text-xs font-bold text-white">
-                                    {initials(iv.company_name)}
-                                  </span>
-                                  <span className="font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                {iv.interview_mode === "coding" ? (
-                                  <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
-                                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
-                                    Coding
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-100">
-                                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
-                                    Voice
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3 text-slate-700">{iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "Coding Round") : (iv.role_type || "Interview Practice")}</td>
-                              <td className="px-4 py-3 text-slate-700">{levelLabel(iv.level)}</td>
-                              <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDate(iv.created_at)}</td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold ${status.color}`}>{status.text}</span>
-                              </td>
-                              <td className="px-4 py-3">
-                                {iv.overall_score !== null ? (
-                                  <div>
-                                    <span className={`text-base font-bold ${scoreColor(iv.overall_score)}`}>{iv.overall_score}</span>
-                                    <span className="text-xs text-slate-500">/10</span>
-                                    <span className={`ml-2 inline-block h-2 w-2 rounded-full ${iv.overall_score >= 6 ? "bg-green-500" : "bg-rose-600"}`} />
-                                  </div>
-                                ) : (
-                                  <span className="text-slate-300">--</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <Link
-                                    href={interviewLink(iv)}
-                                    className="inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-                                  >
-                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M7 16l4-4 3 3 5-7M7 16V9M14 15V9M19 8v8" />
-                                    </svg>
-                                    {iv.overall_score !== null ? "View Report" : "Continue"}
-                                  </Link>
-                                  <button
-                                    onClick={() => handleDelete(iv.id)}
-                                    disabled={deleting === iv.id}
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
-                                    title="Delete interview"
-                                  >
-                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7l1 12h6l1-12" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile cards */}
-                  <div className="sm:hidden divide-y divide-[#edf2f8]">
-                    {filteredInterviews.map((iv) => {
-                      const status = statusLabel(iv.status);
-                      return (
-                        <div key={iv.id} className="px-3 py-2.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#06112f] text-[10px] font-bold text-white">
-                                {initials(iv.company_name)}
-                              </span>
-                              <span className="truncate text-[12px] font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              {iv.overall_score !== null ? (
-                                <span className={`text-[13px] font-bold ${scoreColor(iv.overall_score)}`}>
-                                  {iv.overall_score}<span className="text-[10px] font-normal text-slate-400">/10</span>
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-slate-300">--</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
-                            {iv.interview_mode === "coding" ? (
-                              <span className="inline-flex items-center gap-0.5 rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-700">
-                                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
-                                Coding
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700">Voice</span>
-                            )}
-                            <span>{iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "Coding") : (iv.role_type || "Practice")}</span>
-                            <span>{levelLabel(iv.level)}</span>
-                            <span>{formatDate(iv.created_at)}</span>
-                            <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${status.color}`}>{status.text}</span>
-                          </div>
-                          <div className="mt-2 flex items-center gap-2">
-                            <Link
-                              href={interviewLink(iv)}
-                              className="inline-flex h-6 items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-2 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
-                            >
-                              {iv.overall_score !== null ? "View Report" : "Continue"}
-                            </Link>
-                            <button
-                              onClick={() => handleDelete(iv.id)}
-                              disabled={deleting === iv.id}
-                              className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40"
-                              title="Delete"
-                            >
-                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-2h4l1 2M8 7l1 12h6l1-12" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2 sm:px-4 sm:py-3 text-[10px] sm:text-xs text-slate-500">
-                    <span>{filteredInterviews.length} of {interviews.length}</span>
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <button className="inline-flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Previous page">
-                        <svg className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L9.17 10l3.6 3.71a.75.75 0 11-1.08 1.04l-4.1-4.25a.75.75 0 010-1.04l4.1-4.25a.75.75 0 011.1.02z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      <button className="h-6 w-6 sm:h-9 sm:w-9 rounded-md bg-blue-600 text-[10px] sm:text-xs font-semibold text-white">1</button>
-                      <button className="inline-flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Next page">
-                        <svg className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06l3.6-3.71-3.6-3.71a.75.75 0 111.08-1.04l4.1 4.25a.75.75 0 010 1.04l-4.1 4.25a.75.75 0 01-1.1-.02z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+              <svg className="h-5 w-5 text-slate-400 group-hover:text-slate-600 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </Link>
           </section>
 
           <aside className="space-y-2.5">

@@ -23,6 +23,15 @@ export default function Navbar() {
 
         {user && (
           <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="/history"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 hover:text-gray-800 transition"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="hidden sm:inline">History</span>
+            </Link>
             <span className="hidden sm:inline text-sm text-gray-600">
               {user.displayName || user.email?.split("@")[0] || "User"}
             </span>

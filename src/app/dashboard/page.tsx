@@ -271,7 +271,7 @@ function coachingSuggestion(category: string, index: number) {
 export default function DashboardPage() {
   const router = useRouter();
   const { user: authUser, loading: authLoading, planInfo } = useAuth();
-  const isFreePlan = !planInfo || planInfo.plan === "free";
+  const isFreePlan = !planInfo || (planInfo.plan === "free" && !planInfo.is_super_admin);
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [practiceStreak, setPracticeStreak] = useState<PracticeStreak>(EMPTY_STREAK);
   const [skillFocus, setSkillFocus] = useState<SkillFocusItem[]>([]);

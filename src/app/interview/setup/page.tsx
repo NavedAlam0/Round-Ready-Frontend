@@ -56,6 +56,10 @@ export default function InterviewSetupPage() {
   const [roleSelected, setRoleSelected] = useState(false);
   const [employmentSelected, setEmploymentSelected] = useState(false);
 
+  // Interview mode state
+  const [interviewMode, setInterviewMode] = useState<"voice" | "coding">("voice");
+  const [codingLanguage, setCodingLanguage] = useState("python");
+
   // Setup state
   const [setupLoading, setSetupLoading] = useState(false);
   const [error, setError] = useState("");
@@ -188,6 +192,8 @@ export default function InterviewSetupPage() {
           level,
           years_of_experience: yearsOfExperience,
           employment_type: employmentType,
+          interview_mode: interviewMode,
+          coding_language: interviewMode === "coding" ? codingLanguage : null,
         }),
       });
       if (!res.ok) {
@@ -196,7 +202,11 @@ export default function InterviewSetupPage() {
         return;
       }
       const data = await res.json();
-      router.push(`/interview/plan/${data.interview_id}`);
+      if (interviewMode === "coding") {
+        router.push(`/interview/coding-plan/${data.interview_id}`);
+      } else {
+        router.push(`/interview/plan/${data.interview_id}`);
+      }
     } catch {
       setError("Failed to start interview setup");
     } finally {
@@ -648,6 +658,81 @@ export default function InterviewSetupPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Section 4: Interview Type */}
+                <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                  <div className="flex items-center gap-2 sm:gap-2.5 mb-2 sm:mb-3">
+                    <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-md sm:rounded-lg bg-purple-50 text-purple-600">
+                      <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-[13px] sm:text-[15px] font-semibold text-gray-900">Interview Type</h2>
+                      <p className="text-[11px] sm:text-[13px] text-gray-500">Choose your practice mode</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <button
+                      onClick={() => setInterviewMode("voice")}
+                      className={`relative flex flex-col items-center rounded-lg border-2 px-2.5 py-3 sm:px-3 sm:py-4 text-center transition ${
+                        interviewMode === "voice"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl mb-1.5 sm:mb-2 ${
+                        interviewMode === "voice" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
+                      }`}>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                        </svg>
+                      </div>
+                      <span className={`text-[11px] sm:text-[13px] font-semibold ${interviewMode === "voice" ? "text-blue-700" : "text-gray-700"}`}>Mock Interview</span>
+                      <span className="text-[9px] sm:text-[11px] text-gray-400 mt-0.5">Voice-based Q&A</span>
+                    </button>
+
+                    <button
+                      onClick={() => setInterviewMode("coding")}
+                      className={`relative flex flex-col items-center rounded-lg border-2 px-2.5 py-3 sm:px-3 sm:py-4 text-center transition ${
+                        interviewMode === "coding"
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl mb-1.5 sm:mb-2 ${
+                        interviewMode === "coding" ? "bg-purple-100 text-purple-600" : "bg-gray-100 text-gray-400"
+                      }`}>
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                        </svg>
+                      </div>
+                      <span className={`text-[11px] sm:text-[13px] font-semibold ${interviewMode === "coding" ? "text-purple-700" : "text-gray-700"}`}>Coding Round</span>
+                      <span className="text-[9px] sm:text-[11px] text-gray-400 mt-0.5">Live coding with AI</span>
+                    </button>
+                  </div>
+
+                  {/* Coding-specific options */}
+                  {interviewMode === "coding" && (
+                    <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 space-y-2.5 sm:space-y-3">
+                      <div>
+                        <label className="block text-[11px] sm:text-[13px] font-medium text-gray-700 mb-1 sm:mb-1.5">Preferred Language</label>
+                        <select
+                          value={codingLanguage}
+                          onChange={(e) => setCodingLanguage(e.target.value)}
+                          className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-[13px] text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition"
+                        >
+                          <option value="python">Python</option>
+                          <option value="javascript">JavaScript</option>
+                          <option value="java">Java</option>
+                          <option value="cpp">C++</option>
+                          <option value="go">Go</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Right — Prep Summary Panel */}
@@ -736,6 +821,17 @@ export default function InterviewSetupPage() {
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
                             <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                            Interview Type
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {interviewMode === "coding" ? `Coding (${codingLanguage})` : "Mock Interview"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
+                          <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
+                            <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
                             Resume
@@ -788,14 +884,14 @@ export default function InterviewSetupPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Generating plan...
+                        {interviewMode === "coding" ? "Generating problem..." : "Generating plan..."}
                       </>
                     ) : (
                       <>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                         </svg>
-                        Generate Interview Questions
+                        {interviewMode === "coding" ? "Generate Coding Problem" : "Generate Interview Questions"}
                       </>
                     )}
                   </button>

@@ -88,6 +88,10 @@ export default function InterviewSessionPage({
 
         if (!res.ok) {
           const data = await res.json();
+          if (data.detail === "Interview already completed") {
+            router.replace(`/dashboard`);
+            return;
+          }
           setError(data.detail || "Failed to start interview");
           return;
         }
@@ -138,7 +142,7 @@ export default function InterviewSessionPage({
               call.destroy();
               callRef.current = null;
             } catch {}
-            router.push(`/interview/report/${id}`);
+            router.replace(`/interview/report/${id}`);
           }
         });
 
@@ -221,7 +225,7 @@ export default function InterviewSessionPage({
       } catch {}
     }
     if (timerRef.current) clearInterval(timerRef.current);
-    router.push(`/interview/report/${id}`);
+    router.replace(`/interview/report/${id}`);
   }
 
   function toggleMute() {

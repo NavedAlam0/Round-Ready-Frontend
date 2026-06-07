@@ -37,6 +37,34 @@ interface SkillAssessment {
   recommendation: string;
 }
 
+interface CodeBug {
+  location: string;
+  issue: string;
+  fix: string;
+}
+
+interface CodeImprovement {
+  location: string;
+  suggestion: string;
+}
+
+interface CodeReview {
+  summary: string;
+  bugs: CodeBug[];
+  improvements: CodeImprovement[];
+  good_practices: string[];
+  complexity_analysis: {
+    actual_time: string;
+    actual_space: string;
+    optimal_time: string;
+    optimal_space: string;
+    is_optimal: boolean;
+    explanation: string;
+  } | null;
+  corrected_code: string | null;
+  optimal_solution_explanation: string | null;
+}
+
 interface Report {
   overall_score: number;
   strengths: string[];
@@ -47,6 +75,7 @@ interface Report {
   confidence_analysis: ConfidenceAnalysis | null;
   skill_assessment: SkillAssessment[];
   category_scores: CategoryScore[];
+  code_review: CodeReview | null;
   created_at: string;
 }
 
@@ -57,6 +86,10 @@ interface InterviewContext {
   employment_type: string | null;
   company_name: string | null;
   interview_id: string;
+  interview_mode: string | null;
+  coding_language: string | null;
+  coding_problem: any | null;
+  final_code: string | null;
 }
 
 // --- SVG Donut Chart ---
@@ -92,6 +125,15 @@ function CategoryIcon({ category }: { category: string }) {
     return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>;
   if (c.includes("cultural") || c.includes("fit"))
     return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>;
+  // Coding-specific categories
+  if (c.includes("correctness"))
+    return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+  if (c.includes("quality"))
+    return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>;
+  if (c.includes("algorithm") || c.includes("data struct"))
+    return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z" /></svg>;
+  if (c.includes("time") || c.includes("space") || c.includes("complexity"))
+    return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
   return <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 }
 
@@ -142,14 +184,30 @@ export default function InterviewReportPage({
   const [expandedQA, setExpandedQA] = useState<number | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("overview");
+  const [showFinalCode, setShowFinalCode] = useState(false);
+  const [showCorrectedCode, setShowCorrectedCode] = useState(false);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef(0);
   const MAX_POLLS = 60;
+
+  const isCoding = context?.interview_mode === "coding";
+
+  // Intercept browser back button — go to dashboard, not back to the session
+  useEffect(() => {
+    // Push a duplicate entry so popstate fires on back press
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      router.replace("/dashboard");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [router]);
 
   // Section refs for scroll navigation
   const sectionRefs = {
     overview: useRef<HTMLDivElement>(null),
     categories: useRef<HTMLDivElement>(null),
+    codeReview: useRef<HTMLDivElement>(null),
     skills: useRef<HTMLDivElement>(null),
     strengths: useRef<HTMLDivElement>(null),
     confidence: useRef<HTMLDivElement>(null),
@@ -289,8 +347,8 @@ export default function InterviewReportPage({
               </div>
               <div className="absolute inset-0 w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
             </div>
-            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">Analyzing Your Interview</h2>
-            <p className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6 text-center">Our AI is reviewing your responses and generating detailed feedback...</p>
+            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">Analyzing Your Performance</h2>
+            <p className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6 text-center">Our AI is reviewing your session and generating detailed feedback...</p>
             <div className="w-48 sm:w-64 h-1 sm:h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div className="h-full bg-blue-600 rounded-full animate-pulse" style={{ width: "60%" }} />
             </div>
@@ -307,24 +365,23 @@ export default function InterviewReportPage({
                   Back to Dashboard
                 </button>
 
-                <div className="flex items-start justify-between flex-wrap gap-3 sm:gap-4">
-                  <div>
-                    <h1 className="text-[17px] sm:text-2xl font-bold text-gray-900">Interview Report</h1>
-                    <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h1 className="text-lg sm:text-2xl font-bold text-gray-900">{isCoding ? "Coding Report" : "Interview Report"}</h1>
+                    <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5">
                       Generated on {new Date(report.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => window.print()} className="flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-gray-300 px-2.5 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                      Download PDF
-                    </button>
-                  </div>
+                  <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition shrink-0">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    <span className="hidden sm:inline">Download PDF</span>
+                    <span className="sm:hidden">PDF</span>
+                  </button>
                 </div>
 
                 {/* Context Bar */}
                 {context && (
-                  <div className="mt-2 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-3">
+                  <div className="mt-2 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
                     {context.role_type && (
                       <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-blue-700 border border-blue-200">
                         <svg className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
@@ -348,6 +405,17 @@ export default function InterviewReportPage({
                         {context.employment_type === "internship" ? "Internship" : "Full-Time"}
                       </span>
                     )}
+                    {isCoding && (
+                      <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-indigo-50 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-indigo-700 border border-indigo-200">
+                        <svg className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
+                        Coding Round
+                      </span>
+                    )}
+                    {context.coding_language && (
+                      <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-emerald-700 border border-emerald-200">
+                        {context.coding_language === "cpp" ? "C++" : context.coding_language === "javascript" ? "JavaScript" : context.coding_language.charAt(0).toUpperCase() + context.coding_language.slice(1)}
+                      </span>
+                    )}
                     <span className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full bg-gray-100 px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium text-gray-500 border border-gray-200">
                       ID: {id.slice(0, 8)}
                     </span>
@@ -356,53 +424,62 @@ export default function InterviewReportPage({
               </div>
 
               {/* Score Overview Cards */}
-              <div ref={sectionRefs.overview} className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
+              <div ref={sectionRefs.overview} className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-8">
                 {/* Overall Score */}
-                <div className="col-span-2 sm:col-span-1 md:col-span-1 rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 flex flex-col items-center justify-center">
-                  <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 sm:mb-3">Overall Score</p>
-                  <div className="relative w-[90px] h-[90px] sm:w-[120px] sm:h-[120px]">
-                    <ScoreDonut score={report.overall_score} size={90} strokeWidth={8} />
+                <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 flex flex-col items-center justify-center">
+                  <p className="text-[10px] sm:text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2 sm:mb-3">Overall Score</p>
+                  {/* Mobile donut */}
+                  <div className="relative w-[80px] h-[80px] sm:hidden">
+                    <ScoreDonut score={report.overall_score} size={80} strokeWidth={7} />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className={`text-2xl sm:text-3xl font-bold ${getScoreColor(report.overall_score)}`}>{report.overall_score}</span>
-                      <span className="text-[10px] sm:text-sm text-gray-400 ml-0.5">/10</span>
+                      <span className={`text-xl font-bold ${getScoreColor(report.overall_score)}`}>{report.overall_score}</span>
+                      <span className="text-[9px] text-gray-400 ml-0.5">/10</span>
+                    </div>
+                  </div>
+                  {/* Desktop donut */}
+                  <div className="relative w-[100px] h-[100px] hidden sm:block">
+                    <ScoreDonut score={report.overall_score} size={100} strokeWidth={10} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`text-2xl font-bold ${getScoreColor(report.overall_score)}`}>{report.overall_score}</span>
+                      <span className="text-xs text-gray-400 ml-0.5">/10</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Strongest Area */}
-                <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-5 shadow-sm border border-green-200">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
+                <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-green-200">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
                     </div>
-                    <span className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase">Strongest</span>
+                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 uppercase">Strongest</span>
                   </div>
-                  <p className="text-[11px] sm:text-base font-semibold text-gray-900">{strongest?.category}</p>
-                  <p className="text-[17px] sm:text-2xl font-bold text-green-600 mt-0.5 sm:mt-1">{strongest?.score}<span className="text-[10px] sm:text-sm text-gray-400">/10</span></p>
+                  <p className="text-[12px] sm:text-sm font-semibold text-gray-900 leading-snug">{strongest?.category}</p>
+                  <p className="text-lg sm:text-xl font-bold text-green-600 mt-1">{strongest?.score}<span className="text-[10px] sm:text-xs text-gray-400">/10</span></p>
                 </div>
 
                 {/* Needs Work */}
-                <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-5 shadow-sm border border-amber-200">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" /></svg>
+                <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-amber-200">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" /></svg>
                     </div>
-                    <span className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase">Needs Work</span>
+                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 uppercase">Needs Work</span>
                   </div>
-                  <p className="text-[11px] sm:text-base font-semibold text-gray-900">{weakest?.category}</p>
-                  <p className="text-[17px] sm:text-2xl font-bold text-amber-600 mt-0.5 sm:mt-1">{weakest?.score}<span className="text-[10px] sm:text-sm text-gray-400">/10</span></p>
+                  <p className="text-[12px] sm:text-sm font-semibold text-gray-900 leading-snug">{weakest?.category}</p>
+                  <p className="text-lg sm:text-xl font-bold text-amber-600 mt-1">{weakest?.score}<span className="text-[10px] sm:text-xs text-gray-400">/10</span></p>
                 </div>
 
-                {/* Questions Answered */}
-                <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-5 shadow-sm border border-blue-200">
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
+                {/* Questions / Interactions */}
+                <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-blue-200">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /></svg>
                     </div>
-                    <span className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase">Questions</span>
+                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 uppercase">{isCoding ? "Interactions" : "Questions"}</span>
                   </div>
-                  <p className="text-[17px] sm:text-2xl font-bold text-blue-600 mt-0.5 sm:mt-1">{report.question_answers?.length || 0}</p>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">Questions answered</p>
+                  <p className="text-lg sm:text-xl font-bold text-blue-600">{report.question_answers?.length || 0}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{isCoding ? "Key interactions" : "Questions answered"}</p>
                 </div>
               </div>
 
@@ -440,6 +517,148 @@ export default function InterviewReportPage({
                   ))}
                 </div>
               </div>
+
+              {/* Code Review (coding mode only) */}
+              {isCoding && report.code_review && (
+                <div ref={sectionRefs.codeReview} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                  <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-5 flex items-center gap-1.5 sm:gap-2">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
+                    Code Review
+                  </h2>
+
+                  {/* Summary */}
+                  <p className="text-[11px] sm:text-sm text-gray-700 leading-relaxed mb-4">{report.code_review.summary}</p>
+
+                  {/* Complexity Analysis */}
+                  {report.code_review.complexity_analysis && (
+                    <div className="rounded-md sm:rounded-lg bg-gray-50 border border-gray-100 p-3 sm:p-4 mb-4">
+                      <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase mb-2">Complexity Analysis</p>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-2">
+                        <div className="rounded-md bg-white border border-gray-200 p-2 sm:p-3">
+                          <p className="text-[9px] sm:text-[10px] font-medium text-gray-400 uppercase">Your Solution</p>
+                          <p className="text-[11px] sm:text-sm font-semibold text-gray-900 mt-0.5">Time: {report.code_review.complexity_analysis.actual_time}</p>
+                          <p className="text-[11px] sm:text-sm font-semibold text-gray-900">Space: {report.code_review.complexity_analysis.actual_space}</p>
+                        </div>
+                        <div className="rounded-md bg-white border border-gray-200 p-2 sm:p-3">
+                          <p className="text-[9px] sm:text-[10px] font-medium text-gray-400 uppercase">Optimal</p>
+                          <p className="text-[11px] sm:text-sm font-semibold text-green-700 mt-0.5">Time: {report.code_review.complexity_analysis.optimal_time}</p>
+                          <p className="text-[11px] sm:text-sm font-semibold text-green-700">Space: {report.code_review.complexity_analysis.optimal_space}</p>
+                        </div>
+                      </div>
+                      <div className={`flex items-center gap-1.5 text-[10px] sm:text-xs font-medium ${report.code_review.complexity_analysis.is_optimal ? "text-green-600" : "text-amber-600"}`}>
+                        {report.code_review.complexity_analysis.is_optimal ? (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                        )}
+                        {report.code_review.complexity_analysis.is_optimal ? "Your solution is optimal!" : "Room for optimization"}
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1.5 leading-relaxed">{report.code_review.complexity_analysis.explanation}</p>
+                    </div>
+                  )}
+
+                  {/* Bugs Found */}
+                  {report.code_review.bugs && report.code_review.bugs.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[10px] sm:text-xs font-semibold text-red-600 uppercase mb-2 flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12.75c1.148 0 2.278.08 3.383.237 1.037.146 1.866.966 1.866 2.013 0 3.728-2.35 6.75-5.25 6.75S6.75 18.728 6.75 15c0-1.046.83-1.867 1.866-2.013A24.204 24.204 0 0112 12.75zm0 0c2.883 0 5.647.508 8.207 1.44a23.91 23.91 0 01-1.152 6.06M12 12.75c-2.883 0-5.647.508-8.208 1.44.125 2.104.52 4.136 1.153 6.06M12 12.75a2.25 2.25 0 002.248-2.354M12 12.75a2.25 2.25 0 01-2.248-2.354M12 8.25c.995 0 1.971-.08 2.922-.236.403-.066.74-.358.795-.762a3.778 3.778 0 00-.399-2.25M12 8.25c-.995 0-1.97-.08-2.922-.236-.402-.066-.74-.358-.795-.762a3.734 3.734 0 01.4-2.253M12 8.25a2.25 2.25 0 00-2.248 2.146M12 8.25a2.25 2.25 0 012.248 2.146M8.683 5a6.032 6.032 0 01-1.155-1.002c.07-.63.27-1.222.574-1.747m.581 2.749A3.75 3.75 0 0115.318 5m0 0c.427-.283.815-.62 1.155-.999a4.471 4.471 0 00-.575-1.752M4.921 6a24.048 24.048 0 00-.392 3.314c1.668.546 3.416.914 5.223 1.082M19.08 6c.205 1.08.337 2.187.392 3.314a23.882 23.882 0 01-5.223 1.082" /></svg>
+                        Bugs Found ({report.code_review.bugs.length})
+                      </p>
+                      <div className="space-y-2">
+                        {report.code_review.bugs.map((bug, i) => (
+                          <div key={i} className="rounded-md sm:rounded-lg bg-red-50 border border-red-100 p-2.5 sm:p-3">
+                            <p className="text-[10px] sm:text-xs font-medium text-red-800 mb-1">{bug.location}</p>
+                            <p className="text-[11px] sm:text-sm text-red-700 mb-1.5">{bug.issue}</p>
+                            <p className="text-[10px] sm:text-xs text-red-600"><span className="font-semibold">Fix:</span> {bug.fix}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Improvements */}
+                  {report.code_review.improvements && report.code_review.improvements.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[10px] sm:text-xs font-semibold text-amber-600 uppercase mb-2 flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                        Suggested Improvements ({report.code_review.improvements.length})
+                      </p>
+                      <div className="space-y-2">
+                        {report.code_review.improvements.map((imp, i) => (
+                          <div key={i} className="rounded-md sm:rounded-lg bg-amber-50 border border-amber-100 p-2.5 sm:p-3">
+                            <p className="text-[10px] sm:text-xs font-medium text-amber-800 mb-1">{imp.location}</p>
+                            <p className="text-[11px] sm:text-sm text-amber-700">{imp.suggestion}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Good Practices */}
+                  {report.code_review.good_practices && report.code_review.good_practices.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-[10px] sm:text-xs font-semibold text-green-600 uppercase mb-2 flex items-center gap-1">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.038 4.245 9.75 5.25 9.75h.904" /></svg>
+                        What You Did Well
+                      </p>
+                      <ul className="space-y-1.5">
+                        {report.code_review.good_practices.map((p, i) => (
+                          <li key={i} className="flex gap-1.5 text-[11px] sm:text-sm text-green-800">
+                            <span className="text-green-500 shrink-0 mt-0.5">+</span>
+                            {p}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Your Submitted Code */}
+                  {context?.final_code && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => setShowFinalCode(!showFinalCode)}
+                        className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-gray-500 uppercase mb-2 hover:text-gray-700 transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
+                        Your Submitted Code
+                        <svg className={`w-3 h-3 transition-transform ${showFinalCode ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                      </button>
+                      {showFinalCode && (
+                        <pre className="rounded-lg bg-gray-900 p-3 sm:p-4 overflow-x-auto">
+                          <code className="text-[11px] sm:text-xs text-green-400 font-mono whitespace-pre">{context.final_code}</code>
+                        </pre>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Corrected Code */}
+                  {report.code_review.corrected_code && (
+                    <div className="mb-4">
+                      <button
+                        onClick={() => setShowCorrectedCode(!showCorrectedCode)}
+                        className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-blue-600 uppercase mb-2 hover:text-blue-700 transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Corrected Code
+                        <svg className={`w-3 h-3 transition-transform ${showCorrectedCode ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                      </button>
+                      {showCorrectedCode && (
+                        <pre className="rounded-lg bg-gray-900 p-3 sm:p-4 overflow-x-auto border-2 border-blue-500/30">
+                          <code className="text-[11px] sm:text-xs text-blue-400 font-mono whitespace-pre">{report.code_review.corrected_code}</code>
+                        </pre>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Optimal Solution Explanation */}
+                  {report.code_review.optimal_solution_explanation && (
+                    <div className="rounded-md sm:rounded-lg bg-blue-50 border border-blue-100 p-2.5 sm:p-4">
+                      <p className="text-[10px] sm:text-xs font-semibold text-blue-700 uppercase mb-1.5">Optimal Approach</p>
+                      <p className="text-[11px] sm:text-sm text-blue-900 leading-relaxed">{report.code_review.optimal_solution_explanation}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Skill Assessment */}
               {report.skill_assessment && report.skill_assessment.length > 0 && (
@@ -693,10 +912,11 @@ export default function InterviewReportPage({
                   {[
                     { key: "overview", label: "Score Overview", icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
                     { key: "categories", label: "Category Breakdown", icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" },
+                    ...(isCoding && report.code_review ? [{ key: "codeReview", label: "Code Review", icon: "M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" }] : []),
                     { key: "skills", label: "Skill Assessment", icon: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" },
                     { key: "strengths", label: "Strengths & Weaknesses", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
                     { key: "confidence", label: "Confidence", icon: "M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" },
-                    { key: "qa", label: "Q&A Review", icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
+                    { key: "qa", label: isCoding ? "Interactions" : "Q&A Review", icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
                     { key: "feedback", label: "Detailed Feedback", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" },
                     { key: "transcript", label: "Transcript", icon: "M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" },
                   ].map(item => (
@@ -770,9 +990,21 @@ export default function InterviewReportPage({
                     <span className={`text-sm font-bold ${getScoreColor(avgScore)}`}>{avgScore.toFixed(1)}/10</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Questions</span>
+                    <span className="text-sm text-gray-600">{isCoding ? "Interactions" : "Questions"}</span>
                     <span className="text-sm font-bold text-gray-900">{report.question_answers?.length || 0}</span>
                   </div>
+                  {isCoding && report.code_review?.complexity_analysis && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Optimal?</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                        report.code_review.complexity_analysis.is_optimal
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }`}>
+                        {report.code_review.complexity_analysis.is_optimal ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Skills Assessed</span>
                     <span className="text-sm font-bold text-gray-900">{report.skill_assessment?.length || 0}</span>

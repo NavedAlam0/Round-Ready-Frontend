@@ -16,6 +16,9 @@ interface InterviewItem {
   company_name: string | null;
   overall_score: number | null;
   created_at: string;
+  interview_mode: string | null;
+  coding_language: string | null;
+  coding_problem_title: string | null;
 }
 
 interface PracticeStreak {
@@ -84,11 +87,16 @@ function scoreTone(score: number) {
 }
 
 function interviewLink(iv: InterviewItem) {
+  const isCoding = iv.interview_mode === "coding";
   if (iv.status === "evaluated" || iv.status === "completed") {
     return `/interview/report/${iv.id}`;
   }
-  if (iv.status === "in_progress") return `/interview/session/${iv.id}`;
-  if (iv.status === "planned") return `/interview/plan/${iv.id}`;
+  if (iv.status === "in_progress") {
+    return isCoding ? `/interview/coding/${iv.id}` : `/interview/session/${iv.id}`;
+  }
+  if (iv.status === "planned") {
+    return isCoding ? `/interview/coding-plan/${iv.id}` : `/interview/plan/${iv.id}`;
+  }
   return "/interview/setup";
 }
 
@@ -368,6 +376,9 @@ export default function DashboardPage() {
         iv.role_type,
         iv.level,
         iv.employment_type,
+        iv.interview_mode,
+        iv.coding_problem_title,
+        iv.coding_language,
       ]
         .filter(Boolean)
         .join(" ")
@@ -424,10 +435,11 @@ export default function DashboardPage() {
   function handleExport() {
     if (filteredInterviews.length === 0) return;
 
-    const headers = ["Company", "Role", "Level", "Employment Type", "Date", "Status", "Score"];
+    const headers = ["Company", "Type", "Role", "Level", "Employment Type", "Date", "Status", "Score"];
     const rows = filteredInterviews.map((iv) => [
       iv.company_name || "Practice Interview",
-      iv.role_type || "",
+      iv.interview_mode === "coding" ? "Coding" : "Voice",
+      iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "") : (iv.role_type || ""),
       levelLabel(iv.level),
       iv.employment_type || "",
       formatDate(iv.created_at),
@@ -835,6 +847,7 @@ export default function DashboardPage() {
                       <thead className="border-b border-[#edf2f8] bg-[#fbfdff] text-[11px] font-bold uppercase tracking-wide text-[#64748b]">
                         <tr>
                           <th className="px-4 py-2.5">Company</th>
+                          <th className="px-4 py-2.5">Type</th>
                           <th className="px-4 py-2.5">Role</th>
                           <th className="px-4 py-2.5">Level</th>
                           <th className="px-4 py-2.5">Date</th>
@@ -856,7 +869,20 @@ export default function DashboardPage() {
                                   <span className="font-semibold text-slate-900">{iv.company_name || "Practice Interview"}</span>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-slate-700">{iv.role_type || "Interview Practice"}</td>
+                              <td className="px-4 py-3">
+                                {iv.interview_mode === "coding" ? (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
+                                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
+                                    Coding
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-100">
+                                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" /></svg>
+                                    Voice
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-slate-700">{iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "Coding Round") : (iv.role_type || "Interview Practice")}</td>
                               <td className="px-4 py-3 text-slate-700">{levelLabel(iv.level)}</td>
                               <td className="whitespace-nowrap px-4 py-3 text-slate-700">{formatDate(iv.created_at)}</td>
                               <td className="px-4 py-3">
@@ -927,7 +953,15 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500">
-                            <span>{iv.role_type || "Practice"}</span>
+                            {iv.interview_mode === "coding" ? (
+                              <span className="inline-flex items-center gap-0.5 rounded bg-indigo-50 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-700">
+                                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
+                                Coding
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700">Voice</span>
+                            )}
+                            <span>{iv.interview_mode === "coding" ? (iv.coding_problem_title || iv.role_type || "Coding") : (iv.role_type || "Practice")}</span>
                             <span>{levelLabel(iv.level)}</span>
                             <span>{formatDate(iv.created_at)}</span>
                             <span className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${status.color}`}>{status.text}</span>

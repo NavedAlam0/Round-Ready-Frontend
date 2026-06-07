@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import Navbar from "@/components/layout/Navbar";
+import PaywallModal from "@/components/PaywallModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import Editor from "@monaco-editor/react";
 
@@ -51,6 +52,7 @@ export default function CodingSessionPage({
   const [showProblem, setShowProblem] = useState(true);
   const [mobileTab, setMobileTab] = useState<"code" | "problem">("problem");
   const [showEndWarning, setShowEndWarning] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch coding problem
@@ -96,6 +98,10 @@ export default function CodingSessionPage({
           const data = await res.json();
           if (data.detail === "Interview already completed") {
             router.replace(`/dashboard`);
+            return;
+          }
+          if (res.status === 403) {
+            setShowPaywall(true);
             return;
           }
           setError(data.detail || "Failed to start coding session");
@@ -630,6 +636,7 @@ export default function CodingSessionPage({
           </div>
         </div>
       )}
+      <PaywallModal open={showPaywall} onClose={() => { setShowPaywall(false); router.push("/dashboard"); }} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import Navbar from "@/components/layout/Navbar";
+import PaywallModal from "@/components/PaywallModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 interface Category {
@@ -52,6 +53,7 @@ export default function InterviewSessionPage({
 
   // End interview warning
   const [showEndWarning, setShowEndWarning] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Fetch plan for sidebar
   useEffect(() => {
@@ -90,6 +92,10 @@ export default function InterviewSessionPage({
           const data = await res.json();
           if (data.detail === "Interview already completed") {
             router.replace(`/dashboard`);
+            return;
+          }
+          if (res.status === 403) {
+            setShowPaywall(true);
             return;
           }
           setError(data.detail || "Failed to start interview");
@@ -560,6 +566,7 @@ export default function InterviewSessionPage({
           </div>
         </div>
       )}
+      <PaywallModal open={showPaywall} onClose={() => { setShowPaywall(false); router.push("/dashboard"); }} />
     </div>
   );
 }

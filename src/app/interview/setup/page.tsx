@@ -33,7 +33,7 @@ interface CompanyInfo {
 export default function InterviewSetupPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, planInfo } = useAuth();
 
   // Resume state
   const [resumeText, setResumeText] = useState("");
@@ -158,7 +158,13 @@ export default function InterviewSetupPage() {
     }
   }
 
+  const noCredits = planInfo && !planInfo.is_super_admin && planInfo.credits_remaining <= 0;
+
   async function handleStartInterview() {
+    if (noCredits) {
+      router.push("/pricing");
+      return;
+    }
     if (!resumeText.trim()) {
       setError("Please upload your resume first");
       return;
@@ -466,7 +472,22 @@ export default function InterviewSetupPage() {
                 </div>
 
                 {/* Section 2: Target Company (voice mode only) */}
-                {interviewMode !== "coding" && <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                {interviewMode !== "coding" && <div className="relative rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                  {planInfo && planInfo.plan === "free" && !planInfo.is_super_admin && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white/80 backdrop-blur-[2px]">
+                      <svg className="h-7 w-7 text-gray-400 mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                      </svg>
+                      <p className="text-sm font-semibold text-gray-700">Target Company Research</p>
+                      <p className="mt-0.5 text-xs text-gray-500">Available on Starter & Pro plans</p>
+                      <button
+                        onClick={() => router.push("/pricing")}
+                        className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                      >
+                        Upgrade Plan
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 sm:gap-2.5 mb-2 sm:mb-3">
                     <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-md sm:rounded-lg bg-blue-50 text-blue-600">
                       <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -875,28 +896,41 @@ export default function InterviewSetupPage() {
                   </div>
 
                   {/* Generate Button */}
-                  <button
-                    onClick={handleStartInterview}
-                    disabled={setupLoading || !resumeText.trim()}
-                    className="w-full flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-blue-600 px-4 py-2 sm:px-5 sm:py-3 text-[11px] sm:text-[13px] font-semibold text-white shadow-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg"
-                  >
-                    {setupLoading ? (
-                      <>
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        {interviewMode === "coding" ? "Generating problem..." : "Generating plan..."}
-                      </>
-                    ) : (
-                      <>
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                        </svg>
-                        {interviewMode === "coding" ? "Generate Coding Problem" : "Generate Interview Questions"}
-                      </>
-                    )}
-                  </button>
+                  {noCredits ? (
+                    <div className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 sm:px-5 sm:py-4 text-center">
+                      <p className="text-sm font-semibold text-red-700">No Credits Remaining</p>
+                      <p className="mt-1 text-xs text-red-500">You need at least 1 credit to start an interview.</p>
+                      <button
+                        onClick={() => router.push("/pricing")}
+                        className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+                      >
+                        Upgrade Plan or Buy Credits
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleStartInterview}
+                      disabled={setupLoading || !resumeText.trim()}
+                      className="w-full flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-blue-600 px-4 py-2 sm:px-5 sm:py-3 text-[11px] sm:text-[13px] font-semibold text-white shadow-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg"
+                    >
+                      {setupLoading ? (
+                        <>
+                          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {interviewMode === "coding" ? "Generating problem..." : "Generating plan..."}
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                          </svg>
+                          {interviewMode === "coding" ? "Generate Coding Problem" : "Generate Interview Questions"}
+                        </>
+                      )}
+                    </button>
+                  )}
 
                   <div className="text-center space-y-0.5 sm:space-y-1">
                     <p className="text-[10px] sm:text-xs text-gray-400">

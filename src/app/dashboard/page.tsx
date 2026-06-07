@@ -270,7 +270,8 @@ function coachingSuggestion(category: string, index: number) {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, planInfo } = useAuth();
+  const isFreePlan = !planInfo || planInfo.plan === "free";
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [practiceStreak, setPracticeStreak] = useState<PracticeStreak>(EMPTY_STREAK);
   const [skillFocus, setSkillFocus] = useState<SkillFocusItem[]>([]);
@@ -524,7 +525,19 @@ export default function DashboardPage() {
               />
             </div>
 
-            <div className="overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
+            <div className="relative overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
+              {isFreePlan && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px]">
+                  <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                  <p className="text-sm font-semibold text-gray-700">Score Trends & Analytics</p>
+                  <p className="mt-1 text-xs text-gray-500">Available on Starter & Pro plans</p>
+                  <Link href="/pricing" className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition-colors">
+                    Upgrade Plan
+                  </Link>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-5 sm:py-4 sm:h-[56px]">
                 <h2 className="text-[13px] sm:text-[15px] font-bold leading-5 text-[#0f172a]">Score Trend</h2>
                 <div className="flex items-center gap-2">

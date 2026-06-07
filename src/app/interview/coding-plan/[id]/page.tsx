@@ -80,7 +80,7 @@ export default function CodingPlanPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, planInfo } = useAuth();
   const [problem, setProblem] = useState<CodingProblem | null>(null);
   const [context, setContext] = useState<PlanContext | null>(null);
   const [loading, setLoading] = useState(true);
@@ -308,25 +308,36 @@ export default function CodingPlanPage({
                 <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5">Review the problem, then start your coding session with Katie</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={regenerateProblem}
-                  disabled={regenerating}
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  <svg className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${regenerating ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M2.985 19.644l3.181-3.182" />
-                  </svg>
-                  New Problem
-                </button>
-                <button
-                  onClick={() => router.push(`/interview/coding/${id}`)}
-                  className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-all"
-                >
-                  <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                  </svg>
-                  Start Coding Session
-                </button>
+                {planInfo && !planInfo.is_super_admin && planInfo.credits_remaining <= 0 ? (
+                  <button
+                    onClick={() => router.push("/pricing")}
+                    className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition-all"
+                  >
+                    No Credits — Upgrade Plan
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={regenerateProblem}
+                      disabled={regenerating}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      <svg className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${regenerating ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M2.985 19.644l3.181-3.182" />
+                      </svg>
+                      New Problem
+                    </button>
+                    <button
+                      onClick={() => router.push(`/interview/coding/${id}`)}
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-all"
+                    >
+                      <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                      </svg>
+                      Start Coding Session
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 

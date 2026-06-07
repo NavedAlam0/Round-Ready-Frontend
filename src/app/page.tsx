@@ -708,7 +708,7 @@ export default function Home() {
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Features</Link></li>
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">How it works</Link></li>
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Reports</Link></li>
-                <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Pricing</Link></li>
+                <li><Link href="/pricing" className="text-xs text-gray-500 hover:text-gray-700 transition">Pricing</Link></li>
               </ul>
             </div>
 

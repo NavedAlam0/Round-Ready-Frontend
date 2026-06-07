@@ -219,7 +219,7 @@ export default function InterviewSetupPage() {
   // Checklist items (5 items like the mockup)
   const checklist = [
     { label: "Resume uploaded", done: !!resumeText },
-    { label: "Company researched", done: !!companyInfo },
+    ...(interviewMode !== "coding" ? [{ label: "Company researched", done: !!companyInfo }] : []),
     { label: "Role & experience added", done: roleSelected },
     { label: "Employment type selected", done: employmentSelected },
     { label: "Generate questions", done: false },
@@ -230,7 +230,7 @@ export default function InterviewSetupPage() {
   // Steps for left sidebar
   const steps = [
     { id: 1, label: "Upload Resume", sub: "Add your resume", done: !!resumeText },
-    { id: 2, label: "Target Company", sub: "Tell us where you're applying", done: !!companyInfo },
+    ...(interviewMode !== "coding" ? [{ id: 2, label: "Target Company", sub: "Tell us where you're applying", done: !!companyInfo }] : []),
     { id: 3, label: "Role & Experience", sub: "Your role and background", done: roleSelected && employmentSelected },
     { id: 4, label: "Review & Generate", sub: "Review and generate questions", done: false },
   ];
@@ -318,7 +318,7 @@ export default function InterviewSetupPage() {
               <div className="flex items-center gap-0">
                 {[
                   { id: 1, label: "Resume" },
-                  { id: 2, label: "Company" },
+                  ...(interviewMode !== "coding" ? [{ id: 2, label: "Company" }] : []),
                   { id: 3, label: "Role" },
                   { id: 4, label: "Review" },
                 ].map((step, idx) => {
@@ -465,8 +465,8 @@ export default function InterviewSetupPage() {
                   </div>
                 </div>
 
-                {/* Section 2: Target Company */}
-                <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                {/* Section 2: Target Company (voice mode only) */}
+                {interviewMode !== "coding" && <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
                   <div className="flex items-center gap-2 sm:gap-2.5 mb-2 sm:mb-3">
                     <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-md sm:rounded-lg bg-blue-50 text-blue-600">
                       <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -536,7 +536,7 @@ export default function InterviewSetupPage() {
                       )}
                     </div>
                   )}
-                </div>
+                </div>}
 
                 {/* Section 3: Role & Experience */}
                 <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
@@ -780,6 +780,7 @@ export default function InterviewSetupPage() {
                         <p className="text-[11px] sm:text-[13px] font-semibold text-gray-900">Your Selections</p>
                       </div>
                       <div className="space-y-1.5 sm:space-y-2">
+                        {interviewMode !== "coding" && (
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
                             <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -789,6 +790,7 @@ export default function InterviewSetupPage() {
                           </span>
                           <span className="font-medium text-gray-900">{companyInfo ? companyInfo.name : "—"}</span>
                         </div>
+                        )}
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
                             <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

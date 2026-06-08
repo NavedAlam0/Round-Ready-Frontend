@@ -290,8 +290,8 @@ export default function CodingPlanPage({
         </main>
       ) : problem ? (
         /* ── Problem Display ── */
-        <main className="flex-1 px-4 sm:px-6 py-4 sm:py-8">
-          <div className="mx-auto max-w-4xl">
+        <main className="flex-1 px-5 sm:px-6 lg:px-10 py-4 sm:py-8">
+          <div className="mx-auto max-w-[1536px]">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
               <div>

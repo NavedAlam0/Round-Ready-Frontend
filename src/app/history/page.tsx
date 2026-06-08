@@ -197,7 +197,7 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-[#f8fafd]">
       <Navbar />
-      <main className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
+      <main className="mx-auto max-w-[1536px] px-5 sm:px-6 lg:px-10 py-5 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>

@@ -399,7 +399,7 @@ export default function DashboardPage() {
     return (
       <>
         <Navbar />
-        <div className="mx-auto max-w-[1560px] px-6 py-8 sm:px-8 lg:px-10 animate-pulse">
+        <div className="mx-auto max-w-[1536px] px-5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8 animate-pulse">
           {/* Header skeleton */}
           <div className="h-7 w-40 rounded bg-gray-200" />
           <div className="mt-2 h-4 w-72 rounded bg-gray-100" />
@@ -444,28 +444,28 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#f7f9fc] text-slate-950">
       <Navbar />
-      <main className="mx-auto w-full max-w-[1536px] px-5 py-4 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1536px] px-5 py-5 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
         <div className="mb-3">
-          <h1 className="text-lg sm:text-[22px] font-bold leading-tight tracking-normal text-[#0f172a]">Dashboard</h1>
-          <p className="mt-0.5 text-[12px] sm:text-[13px] leading-5 text-[#64748b]">
+          <h1 className="text-lg sm:text-2xl font-bold leading-tight tracking-normal text-[#0f172a]">Dashboard</h1>
+          <p className="mt-1 text-[13px] sm:text-sm leading-5 text-[#64748b]">
             Track your interview practice and improve with every session.
           </p>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,2.05fr)_minmax(380px,0.95fr)]">
-          <section className="min-w-0 space-y-3">
+        <div className="grid gap-5 lg:gap-6 xl:grid-cols-[minmax(0,2.1fr)_minmax(340px,0.9fr)]">
+          <section className="min-w-0 space-y-4">
             <div className="overflow-hidden rounded-lg border border-[#c9daf8] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-              <div className="relative flex flex-col gap-2 sm:gap-3 px-3 py-2.5 sm:px-6 sm:py-5 lg:min-h-[96px] lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative flex flex-col gap-2 sm:gap-3 px-3 py-3 sm:px-6 sm:py-6 lg:min-h-[104px] lg:flex-row lg:items-center lg:justify-between">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_42%,rgba(37,99,235,0.13),transparent_30%),linear-gradient(90deg,rgba(239,246,255,0.95),rgba(255,255,255,0.98))]" />
                 <div className="relative flex min-w-0 items-center gap-2.5 sm:gap-4">
                   <div className="shrink-0 scale-[0.55] sm:scale-100 origin-left -mr-5 sm:mr-0">
                     <WaveOrb />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-[13px] sm:text-[17px] font-bold leading-tight text-[#0f172a]">
+                    <h2 className="text-[14px] sm:text-lg font-bold leading-tight text-[#0f172a]">
                       Welcome back, {user.full_name}
                     </h2>
-                    <p className="mt-0.5 sm:mt-1 max-w-md text-[10px] sm:text-[13px] leading-[1.4] sm:leading-5 text-[#64748b]">
+                    <p className="mt-0.5 sm:mt-1 max-w-md text-[11px] sm:text-sm leading-[1.4] sm:leading-5 text-[#64748b]">
                       Keep practicing to build confidence and ace your next interview.
                     </p>
                   </div>
@@ -473,7 +473,7 @@ export default function DashboardPage() {
                 <div className="relative grid w-full grid-cols-2 gap-1.5 sm:gap-2.5 lg:w-[220px] lg:grid-cols-1">
                   <Link
                     href="/interview/setup"
-                    className="inline-flex h-7 sm:h-9 items-center justify-center gap-1 sm:gap-1.5 rounded-md bg-[#2563eb] px-2.5 sm:px-5 text-[11px] sm:text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+                    className="inline-flex h-8 sm:h-10 items-center justify-center gap-1 sm:gap-1.5 rounded-lg bg-[#2563eb] px-3 sm:px-5 text-[12px] sm:text-sm font-semibold text-white shadow-[0_8px_18px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
                   >
                     <svg className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" d="M12 5v14M5 12h14" />
@@ -482,7 +482,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link
                     href={latestReportHref}
-                    className="inline-flex h-7 sm:h-9 items-center justify-center gap-1 sm:gap-1.5 rounded-md border border-[#dbe6f5] bg-white px-2.5 sm:px-5 text-[11px] sm:text-[13px] font-semibold text-[#334155] transition hover:bg-[#f8fbff]"
+                    className="inline-flex h-8 sm:h-10 items-center justify-center gap-1 sm:gap-1.5 rounded-lg border border-[#dbe6f5] bg-white px-3 sm:px-5 text-[12px] sm:text-sm font-semibold text-[#334155] transition hover:bg-[#f8fbff]"
                   >
                     <svg className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8 4h6l4 4v12H8a2 2 0 01-2-2V6a2 2 0 012-2z" />
@@ -494,7 +494,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4">
               <StatCard
                 title="Total Interviews"
                 value={interviews.length.toString()}
@@ -538,8 +538,8 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2 px-3 py-2.5 sm:px-5 sm:py-4 sm:h-[56px]">
-                <h2 className="text-[13px] sm:text-[15px] font-bold leading-5 text-[#0f172a]">Score Trend</h2>
+              <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4 sm:h-[60px]">
+                <h2 className="text-sm sm:text-base font-bold leading-5 text-[#0f172a]">Score Trend</h2>
                 <div className="flex items-center gap-2">
                   <div className="flex rounded-md border border-gray-200 bg-gray-50 p-0.5">
                     {([
@@ -752,7 +752,7 @@ export default function DashboardPage() {
             </Link>
           </section>
 
-          <aside className="space-y-2.5">
+          <aside className="space-y-4">
             <Panel>
               <div className="flex items-start gap-2 sm:gap-3">
                 <Icon tone="blue">
@@ -928,9 +928,9 @@ function StatCard({
   progress?: number;
 }) {
   return (
-    <div className="relative h-[80px] sm:h-[120px] min-w-0 overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white px-2.5 py-2 sm:px-4 sm:py-3.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
-      <div className="flex min-w-0 items-start gap-1.5 sm:gap-2.5">
-        <span className="flex h-7 w-7 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#eff6ff] text-[#2563eb]">
+    <div className="relative h-[88px] sm:h-[130px] min-w-0 overflow-hidden rounded-xl border border-[#dbe6f5] bg-white px-3 py-2.5 sm:px-5 sm:py-4 shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
+      <div className="flex min-w-0 items-start gap-2 sm:gap-3">
+        <span className="flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#eff6ff] text-[#2563eb]">
           {icon === "briefcase" && (
             <svg className="h-4 w-4 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 7V6a2 2 0 012-2h2a2 2 0 012 2v1M5 7h14v12H5V7zM5 12h14" />
@@ -953,8 +953,8 @@ function StatCard({
           )}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[10px] sm:text-[12px] font-semibold leading-3 sm:leading-4 text-[#42526e]">{title}</p>
-          <p className="mt-0.5 sm:mt-1 truncate text-[15px] sm:text-[22px] font-bold leading-none tracking-normal text-[#0f172a]">{value}</p>
+          <p className="truncate text-[11px] sm:text-[13px] font-semibold leading-4 text-[#42526e]">{title}</p>
+          <p className="mt-0.5 sm:mt-1.5 truncate text-[17px] sm:text-[24px] font-bold leading-none tracking-normal text-[#0f172a]">{value}</p>
         </div>
       </div>
       {sparkline && (
@@ -967,7 +967,7 @@ function StatCard({
           <div className="h-full rounded-full bg-[#2563eb]" style={{ width: `${progress}%` }} />
         </div>
       )}
-      <p className="absolute bottom-1.5 sm:bottom-3 left-2.5 sm:left-4 right-2.5 sm:right-4 truncate text-[9px] sm:text-[12px] leading-3 sm:leading-4 text-[#64748b]">{subtitle}</p>
+      <p className="absolute bottom-2 sm:bottom-3.5 left-3 sm:left-5 right-3 sm:right-5 truncate text-[10px] sm:text-[12px] leading-3 sm:leading-4 text-[#64748b]">{subtitle}</p>
     </div>
   );
 }
@@ -1010,7 +1010,7 @@ function FilterSelect({
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-w-0 rounded-lg border border-[#dde7f5] bg-white p-3 sm:p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <div className="min-w-0 rounded-xl border border-[#dde7f5] bg-white p-4 sm:p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       {children}
     </div>
   );

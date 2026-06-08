@@ -313,7 +313,7 @@ export default function InterviewSetupPage() {
 
         {/* Center + Right Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="px-4 sm:px-8 lg:px-10 py-3 sm:py-5">
+          <div className="mx-auto max-w-[1536px] px-5 sm:px-8 lg:px-10 py-3 sm:py-5">
             {/* Page Header + Top Progress */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
               <div>

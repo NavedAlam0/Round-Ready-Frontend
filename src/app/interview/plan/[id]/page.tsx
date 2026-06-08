@@ -349,19 +349,19 @@ export default function InterviewPlanPage({
         <main className="flex-1 flex items-center justify-center px-5 sm:px-6">
           <div className="w-full max-w-lg text-center">
             {/* AI Agent Orb */}
-            <div className="mx-auto mb-3 sm:mb-4 relative" style={{ width: 120, height: 120 }}>
+            <div className="mx-auto mb-3 sm:mb-4 lg:mb-6 relative w-[120px] h-[120px] lg:w-[160px] lg:h-[160px]">
               {/* Outer dashed orbit with 3 dots */}
-              <svg className="absolute inset-0 animate-[spin_25s_linear_infinite]" width="120" height="120" viewBox="0 0 160 160" fill="none">
+              <svg className="absolute inset-0 w-full h-full animate-[spin_25s_linear_infinite]" viewBox="0 0 160 160" fill="none">
                 <circle cx="80" cy="80" r="76" stroke="#c7d2e8" strokeWidth="0.8" strokeDasharray="5 3.5" />
                 <circle cx="80" cy="4" r="3.5" fill="#6b8abf" />
                 <circle cx="156" cy="80" r="4" fill="#7c9fd4" />
                 <circle cx="28" cy="142" r="3" fill="#94b3de" />
               </svg>
               {/* Inner solid ring */}
-              <div className="absolute inset-[16px] sm:inset-[22px] rounded-full border border-blue-200/50" />
+              <div className="absolute inset-[16px] sm:inset-[22px] lg:inset-[28px] rounded-full border border-blue-200/50" />
               {/* Center glowing orb */}
-              <div className="absolute inset-[26px] sm:inset-[36px] rounded-full shadow-[0_0_35px_rgba(59,130,246,0.15)] flex items-center justify-center" style={{ background: "radial-gradient(circle, #ffffff 0%, #eff6ff 50%, #dbeafe 100%)" }}>
-                <svg className="w-8 h-6 sm:w-[44px] sm:h-9" viewBox="0 0 44 36" fill="none">
+              <div className="absolute inset-[26px] sm:inset-[36px] lg:inset-[44px] rounded-full shadow-[0_0_35px_rgba(59,130,246,0.15)] flex items-center justify-center" style={{ background: "radial-gradient(circle, #ffffff 0%, #eff6ff 50%, #dbeafe 100%)" }}>
+                <svg className="w-8 h-6 sm:w-[44px] sm:h-9 lg:w-[52px] lg:h-[42px]" viewBox="0 0 44 36" fill="none">
                   {(() => {
                     const bars = [3,5,8,5,11,14,8,17,22,26,30,32,30,26,22,17,11,14,8,6,9,5,6,3];
                     return bars.map((h, i) => (
@@ -372,47 +372,47 @@ export default function InterviewPlanPage({
               </div>
             </div>
             {/* AI agent working badge */}
-            <div className="mx-auto mb-2.5 sm:mb-4 inline-flex items-center gap-1.5 rounded-full bg-green-50/80 border border-green-200/60 px-2.5 py-0.5 sm:px-3 sm:py-1">
+            <div className="mx-auto mb-2.5 sm:mb-4 lg:mb-5 inline-flex items-center gap-1.5 rounded-full bg-green-50/80 border border-green-200/60 px-2.5 py-0.5 sm:px-3 sm:py-1 lg:px-4 lg:py-1.5">
               <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500" />
-              <span className="text-[11px] sm:text-[13px] font-medium text-green-700">AI agent working</span>
+              <span className="text-[11px] sm:text-[13px] lg:text-sm font-medium text-green-700">AI agent working</span>
             </div>
-            <h1 className="text-[15px] sm:text-xl font-bold text-gray-900">Generating Your Interview Plan</h1>
-            <p className="mt-0.5 sm:mt-1 text-[11px] sm:text-[13px] text-gray-500">Our AI is crafting personalized questions based on your profile</p>
-            <div className="mt-3 sm:mt-5 mx-auto max-w-xs">
-              <div className="h-1 sm:h-1.5 rounded-full bg-gray-200 overflow-hidden">
+            <h1 className="text-[15px] sm:text-xl lg:text-2xl font-bold text-gray-900">Generating Your Interview Plan</h1>
+            <p className="mt-0.5 sm:mt-1 lg:mt-2 text-[11px] sm:text-[13px] lg:text-sm text-gray-500">Our AI is crafting personalized questions based on your profile</p>
+            <div className="mt-3 sm:mt-5 lg:mt-6 mx-auto max-w-xs lg:max-w-sm">
+              <div className="h-1 sm:h-1.5 lg:h-2 rounded-full bg-gray-200 overflow-hidden">
                 <div className="h-full rounded-full bg-blue-600 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((loadingStep + 1) / LOADING_STEPS.length) * 100, 95)}%` }} />
               </div>
             </div>
-            <div className="mt-3 sm:mt-5 space-y-2 sm:space-y-2.5 mx-auto max-w-xs text-left">
+            <div className="mt-3 sm:mt-5 lg:mt-6 space-y-2 sm:space-y-2.5 lg:space-y-3 mx-auto max-w-xs lg:max-w-sm text-left">
               {LOADING_STEPS.map((step, idx) => (
-                <div key={step.label} className="flex items-center gap-2 sm:gap-2.5">
+                <div key={step.label} className="flex items-center gap-2 sm:gap-2.5 lg:gap-3">
                   {idx < loadingStep ? (
-                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full bg-green-500">
-                      <svg className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 shrink-0 items-center justify-center rounded-full bg-green-500">
+                      <svg className="h-2 w-2 sm:h-2.5 sm:w-2.5 lg:h-3 lg:w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </div>
                   ) : idx === loadingStep ? (
-                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center">
-                      <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 shrink-0 items-center justify-center">
+                      <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
                     </div>
                   ) : (
-                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full border-2 border-gray-200" />
+                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 shrink-0 items-center justify-center rounded-full border-2 border-gray-200" />
                   )}
-                  <span className={`text-[11px] sm:text-[13px] ${idx < loadingStep ? "text-green-600 font-medium" : idx === loadingStep ? "text-gray-900 font-medium" : "text-gray-400"}`}>{step.label}</span>
+                  <span className={`text-[11px] sm:text-[13px] lg:text-sm ${idx < loadingStep ? "text-green-600 font-medium" : idx === loadingStep ? "text-gray-900 font-medium" : "text-gray-400"}`}>{step.label}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 sm:mt-6 rounded-lg bg-blue-50 border border-blue-100 p-2.5 sm:p-3 mx-auto max-w-xs">
-              <div className="flex items-start gap-2 sm:gap-2.5">
-                <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-600 mt-0.5">
-                  <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
+            <div className="mt-4 sm:mt-6 lg:mt-8 rounded-lg lg:rounded-xl bg-blue-50 border border-blue-100 p-2.5 sm:p-3 lg:p-4 mx-auto max-w-xs lg:max-w-sm">
+              <div className="flex items-start gap-2 sm:gap-2.5 lg:gap-3">
+                <div className="flex h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 shrink-0 items-center justify-center rounded-md lg:rounded-lg bg-blue-100 text-blue-600 mt-0.5">
+                  <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] sm:text-[11px] font-semibold text-blue-700 uppercase tracking-wide">Interview Tip</p>
-                  <p className="mt-0.5 text-[11px] sm:text-[13px] text-blue-600 leading-relaxed">{TIPS[tipIndex]}</p>
+                  <p className="text-[10px] sm:text-[11px] lg:text-xs font-semibold text-blue-700 uppercase tracking-wide">Interview Tip</p>
+                  <p className="mt-0.5 text-[11px] sm:text-[13px] lg:text-sm text-blue-600 leading-relaxed">{TIPS[tipIndex]}</p>
                 </div>
               </div>
             </div>
-            <p className="mt-3 sm:mt-4 text-[10px] sm:text-[11px] text-gray-400">This usually takes 10–15 seconds</p>
+            <p className="mt-3 sm:mt-4 lg:mt-5 text-[10px] sm:text-[11px] lg:text-xs text-gray-400">This usually takes 10–15 seconds</p>
           </div>
         </main>
       ) : error ? (
@@ -435,7 +435,7 @@ export default function InterviewPlanPage({
         <div className="flex-1 overflow-y-auto">
           {/* Header Section */}
           <div className="border-b border-gray-200 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-10 py-3 sm:py-5">
+            <div className="max-w-[1536px] mx-auto px-5 sm:px-6 lg:px-10 py-3 sm:py-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div>
                   <div className="flex items-center gap-2 sm:gap-3 mb-0.5 sm:mb-1">
@@ -500,7 +500,7 @@ export default function InterviewPlanPage({
           </div>
 
           {/* Stat Cards */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-10 py-3 sm:py-5">
+          <div className="max-w-[1536px] mx-auto px-5 sm:px-6 lg:px-10 py-3 sm:py-5">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
               <div className="rounded-lg sm:rounded-xl border border-gray-200 bg-white p-2.5 sm:p-4">
                 <div className="flex items-center gap-2 sm:gap-2.5">
@@ -550,7 +550,7 @@ export default function InterviewPlanPage({
           </div>
 
           {/* Main Content + Sidebar */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-10 pb-6 sm:pb-8 flex gap-6">
+          <div className="max-w-[1536px] mx-auto px-5 sm:px-6 lg:px-10 pb-6 sm:pb-8 flex gap-6">
             {/* Left: Questions */}
             <div className="flex-1 min-w-0">
               {/* Filter Tabs + Search */}

@@ -286,7 +286,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1536px] px-5 py-10 sm:px-6 lg:px-10">
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Choose Your Plan</h1>

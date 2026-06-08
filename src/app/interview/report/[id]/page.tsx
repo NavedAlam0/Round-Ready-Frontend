@@ -355,9 +355,9 @@ export default function InterviewReportPage({
             <p className="text-[10px] sm:text-xs text-gray-400 mt-2 sm:mt-3">This usually takes 15-30 seconds</p>
           </div>
         ) : report ? (
-          <div className="flex">
+          <div className="mx-auto max-w-[1536px] flex">
             {/* Main Content */}
-            <div className="flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-6 lg:px-10">
+            <div className="flex-1 min-w-0 px-5 py-4 sm:px-6 sm:py-6 lg:px-10">
               {/* Header */}
               <div className="mb-4 sm:mb-6">
                 <button onClick={() => router.push("/dashboard")} className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-sm text-gray-500 hover:text-gray-700 mb-3 sm:mb-4 transition">

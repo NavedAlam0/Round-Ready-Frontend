@@ -716,8 +716,8 @@ export default function InterviewSetupPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                         </svg>
                       </div>
-                      <span className={`text-[11px] sm:text-[13px] font-semibold ${interviewMode === "voice" ? "text-blue-700" : "text-gray-700"}`}>Mock Interview</span>
-                      <span className="text-[9px] sm:text-[11px] text-gray-400 mt-0.5">Voice-based Q&A</span>
+                      <span className={`text-[11px] sm:text-[13px] font-semibold ${interviewMode === "voice" ? "text-blue-700" : "text-gray-700"}`}>Voice Interview</span>
+                      <span className="text-[9px] sm:text-[11px] text-gray-400 mt-0.5">AI-powered voice Q&A</span>
                     </button>
 
                     <button
@@ -855,7 +855,7 @@ export default function InterviewSetupPage() {
                             Interview Type
                           </span>
                           <span className="font-medium text-gray-900">
-                            {interviewMode === "coding" ? `Coding (${codingLanguage})` : "Mock Interview"}
+                            {interviewMode === "coding" ? `Coding (${codingLanguage})` : "Voice Interview"}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">

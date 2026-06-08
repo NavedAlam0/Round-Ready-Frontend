@@ -421,9 +421,11 @@ export default function InterviewSetupPage() {
                             type="file"
                             accept=".pdf"
                             className="hidden"
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) handleFileUpload(file);
+                              e.target.value = "";
                             }}
                           />
                         </div>
@@ -458,7 +460,11 @@ export default function InterviewSetupPage() {
                           </svg>
                         </div>
                         <button
-                          onClick={() => { setResumeText(""); setResumeFileName(""); }}
+                          onClick={() => {
+                            setResumeText(""); setResumeFileName("");
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                            apiFetch("/api/resume", { method: "DELETE" }).catch(() => {});
+                          }}
                           className="mt-1.5 sm:mt-2 flex items-center gap-1.5 text-[11px] sm:text-[13px] text-gray-500 hover:text-gray-700 transition"
                         >
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

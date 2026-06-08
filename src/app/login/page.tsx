@@ -58,58 +58,72 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel — Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-indigo-700 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-          <Link href="/" className="text-2xl font-bold">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .auth-grid { background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px); background-size: 28px 28px; }
+        @keyframes authRing { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes authBars { 0%, 100% { height: var(--h-min); } 50% { height: var(--h-max); } }
+      `}} />
+      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 relative overflow-hidden">
+        {/* Dot grid background */}
+        <div className="auth-grid absolute inset-0 opacity-[0.5]" />
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(249,250,251,1) 80%)" }} />
+
+        <div className="relative z-10 flex flex-col justify-between p-12 pl-20 xl:pl-28 w-full">
+          <Link href="/" className="text-2xl font-bold text-gray-900">
             RoundReady
           </Link>
 
           <div>
-            <h2 className="text-4xl font-bold leading-tight">
+            {/* Animated voice orb */}
+            <div className="mb-8 flex items-center justify-start">
+              <div className="relative flex h-20 w-20 items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-blue-500/20" style={{ animation: "authRing 2s ease-out infinite" }} />
+                <div className="absolute inset-0 rounded-full bg-blue-500/15" style={{ animation: "authRing 2s ease-out infinite 0.6s" }} />
+                <div className="absolute inset-0 rounded-full bg-blue-500/10" style={{ animation: "authRing 2s ease-out infinite 1.2s" }} />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 shadow-lg shadow-blue-500/25">
+                  <div className="flex items-center gap-[3px]" style={{ height: 30 }}>
+                    {[
+                      { min: 5, max: 12, delay: 0 }, { min: 7, max: 18, delay: 0.15 },
+                      { min: 10, max: 24, delay: 0.3 }, { min: 12, max: 28, delay: 0.1 },
+                      { min: 14, max: 30, delay: 0.25 }, { min: 12, max: 28, delay: 0.05 },
+                      { min: 10, max: 24, delay: 0.2 }, { min: 7, max: 18, delay: 0.35 },
+                      { min: 5, max: 12, delay: 0.15 },
+                    ].map((bar, i) => (
+                      <span key={i} className="w-[3px] rounded-full bg-white" style={{ ["--h-min" as string]: `${bar.min}px`, ["--h-max" as string]: `${bar.max}px`, height: bar.min, animation: `authBars 0.8s ease-in-out infinite ${bar.delay}s` }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-4xl font-bold leading-tight text-gray-900">
               Practice makes
               <br />
               perfect interviews.
             </h2>
-            <p className="mt-4 text-lg text-blue-100 leading-relaxed max-w-md">
-              Get personalized questions, real-time voice practice, and detailed
-              feedback — all powered by AI.
+            <p className="mt-4 text-lg text-gray-500 leading-relaxed max-w-md">
+              Get personalized questions, real-time voice practice, live coding
+              rounds, and detailed feedback, all powered by AI.
             </p>
 
             <div className="mt-10 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+              {["Resume-based personalized questions", "Voice interviews & live coding rounds", "Detailed scores & model answers"].map((text) => (
+                <div key={text} className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50">
+                    <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-600">{text}</span>
                 </div>
-                <span className="text-sm text-blue-50">Resume-based personalized questions</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-sm text-blue-50">Real-time voice conversation</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span className="text-sm text-blue-50">Detailed scores & model answers</span>
-              </div>
+              ))}
             </div>
           </div>
 
-          <p className="text-xs text-blue-200">
+          <p className="text-xs text-gray-400">
             &copy; {new Date().getFullYear()} roundready.in
           </p>
         </div>
-
-        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/5" />
-        <div className="absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-white/5" />
       </div>
 
       {/* Right Panel — Form */}

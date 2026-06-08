@@ -115,7 +115,7 @@ export default function Home() {
               <div className="mt-6 sm:mt-8 flex flex-wrap justify-center lg:justify-start gap-2.5 sm:gap-3">
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#0f172a] px-4 py-2.5 sm:px-6 sm:py-3 text-[13px] sm:text-sm font-semibold text-white shadow-lg hover:bg-[#1e293b] transition-all"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 sm:px-6 sm:py-3 text-[13px] sm:text-sm font-semibold text-white shadow-lg hover:bg-blue-500 transition-all"
                 >
                   Start practicing free
                   <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -719,21 +719,21 @@ export default function Home() {
       {/* ========== CTA BANNER ========== */}
       <section className="px-4 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-2xl bg-blue-600 px-6 py-10 sm:px-12 sm:py-14 text-center sm:text-left sm:flex sm:items-center sm:justify-between">
+          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-10 sm:px-12 sm:py-14 text-center sm:text-left sm:flex sm:items-center sm:justify-between shadow-sm">
             <div className="flex items-center justify-center sm:justify-start gap-4">
-              <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
-                <svg className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100">
+                <svg className="h-7 w-7 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Ready to ace every interview round?</h2>
-                <p className="mt-1.5 text-sm text-blue-100">Join thousands of candidates who practice smarter with RoundReady.</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Ready to ace every interview round?</h2>
+                <p className="mt-1.5 text-sm text-gray-500">Join thousands of candidates who practice smarter with RoundReady.</p>
               </div>
             </div>
             <Link
               href="/register"
-              className="mt-6 sm:mt-0 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-lg hover:bg-gray-50 transition-all"
+              className="mt-6 sm:mt-0 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-blue-500 transition-all"
             >
               Get Started for Free
               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

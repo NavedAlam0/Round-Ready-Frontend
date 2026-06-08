@@ -20,7 +20,7 @@ export default function Home() {
     <>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Image src="/RoundReady logo.png" alt="RoundReady" width={32} height={32} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full" />
             <span className="text-[15px] sm:text-lg font-bold text-gray-900">RoundReady</span>
@@ -44,7 +44,7 @@ export default function Home() {
 
       {/* ========== STEP 1: Hero Section ========== */}
       <section className="relative overflow-hidden bg-white px-4 pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
             {/* Left: Text */}
             <div className="text-center lg:text-left">
@@ -54,14 +54,14 @@ export default function Home() {
                 </svg>
                 AI-Powered Interview Practice
               </p>
-              <h1 className="mt-5 text-3xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl lg:text-[44px]">
+              <h1 className="mt-5 text-3xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-4xl lg:text-[44px] xl:text-[52px]">
                 Practice every
                 <br />
                 interview round
                 <br />
                 <span className="text-blue-600">before it counts</span>
               </h1>
-              <p className="mt-5 mx-auto max-w-md text-[15px] leading-relaxed text-gray-600 lg:mx-0">
+              <p className="mt-5 mx-auto max-w-md xl:max-w-lg text-[15px] xl:text-base leading-relaxed text-gray-600 lg:mx-0">
                 RoundReady uses AI to generate role-specific questions from your
                 resume, conduct real-time voice interviews, and deliver detailed
                 feedback with scores and model answers.
@@ -109,9 +109,9 @@ export default function Home() {
             </div>
 
             {/* Right: Product Screenshots */}
-            <div className="relative hidden min-h-[520px] lg:block">
+            <div className="relative hidden min-h-[520px] lg:block xl:min-h-[580px]">
               {/* Interview Session Card */}
-              <div className="w-[340px] rounded-xl border border-gray-200 bg-white p-4 shadow-xl">
+              <div className="w-[340px] xl:w-[400px] rounded-xl border border-gray-200 bg-white p-4 xl:p-5 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
@@ -185,7 +185,7 @@ export default function Home() {
               </div>
 
               {/* Floating Score Card - positioned top right, overlapping */}
-              <div className="absolute right-0 top-0 w-[190px] rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
+              <div className="absolute right-0 top-0 w-[190px] xl:w-[220px] rounded-xl border border-gray-200 bg-white p-4 xl:p-5 shadow-lg">
                 <p className="text-[10px] font-medium text-gray-400 italic">Overall Score</p>
                 <div className="mt-3 flex items-center justify-center">
                   <div className="relative flex h-[72px] w-[72px] items-center justify-center">
@@ -220,7 +220,7 @@ export default function Home() {
               </div>
 
               {/* Floating Transcript Card - positioned bottom, overlapping both cards */}
-              <div className="absolute bottom-0 left-[120px] w-[320px] rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
+              <div className="absolute bottom-0 left-[120px] xl:left-[140px] w-[320px] xl:w-[380px] rounded-xl border border-gray-200 bg-white p-4 xl:p-5 shadow-lg">
                 <p className="text-[13px] font-bold text-gray-800">Live Transcript</p>
                 <div className="mt-3 space-y-3">
                   {[
@@ -245,7 +245,7 @@ export default function Home() {
 
       {/* ========== STEP 2: Trust Badges Row ========== */}
       <section className="border-y border-gray-100 bg-gray-50/50 px-4 py-8">
-        <div className="mx-auto grid max-w-4xl grid-cols-3 gap-3 sm:gap-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-3 gap-3 sm:gap-6">
           {[
             {
               icon: (
@@ -290,7 +290,7 @@ export default function Home() {
 
       {/* ========== STEP 3: How It Works ========== */}
       <section className="px-4 py-12 sm:py-16 bg-white">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">How it works</h2>
             <p className="mt-2 text-sm text-gray-500">Three simple steps to ace your next interview.</p>
@@ -356,7 +356,7 @@ export default function Home() {
 
       {/* ========== STEP 4: Why RoundReady ========== */}
       <section className="px-4 py-12 sm:py-16 bg-white">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Why RoundReady?</h2>
             <p className="mt-2 text-sm text-gray-500">Built to make your interview prep smarter, not harder.</p>
@@ -465,7 +465,7 @@ export default function Home() {
 
       {/* ========== STEP 5: Sample Report Preview ========== */}
       <section id="sample-report" className="px-4 py-12 sm:py-16 bg-gray-50">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <div className="text-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Sample Report Preview</h2>
             <p className="mt-2 text-sm text-gray-500">See the kind of insights you&apos;ll get after every session.</p>
@@ -668,7 +668,7 @@ export default function Home() {
 
       {/* ========== STEP 7: Full Footer ========== */}
       <footer className="border-t border-gray-200 bg-white px-4 py-12">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-4 lg:grid-cols-5">
             {/* Brand */}
             <div className="sm:col-span-4 lg:col-span-1">

@@ -792,7 +792,7 @@ export default function Home() {
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Blog</Link></li>
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Interview Tips</Link></li>
                 <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Help Center</Link></li>
-                <li><Link href="/register" className="text-xs text-gray-500 hover:text-gray-700 transition">Privacy Policy</Link></li>
+                <li><Link href="/privacy" className="text-xs text-gray-500 hover:text-gray-700 transition">Privacy Policy</Link></li>
               </ul>
             </div>
 

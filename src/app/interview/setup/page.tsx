@@ -65,6 +65,10 @@ export default function InterviewSetupPage() {
   const [error, setError] = useState("");
   const [prefsLoaded, setPrefsLoaded] = useState(false);
 
+  // Validation state
+  const [roleError, setRoleError] = useState(false);
+  const [employmentError, setEmploymentError] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !authUser) {
       router.replace("/login");
@@ -169,9 +173,29 @@ export default function InterviewSetupPage() {
       setError("Please upload your resume first");
       return;
     }
+
+    // Validate role & employment type
+    const role = roleType === "Other" ? customRole : roleType;
+    let hasValidationError = false;
+    if (!role || !role.trim()) {
+      setRoleError(true);
+      hasValidationError = true;
+    } else {
+      setRoleError(false);
+    }
+    if (!employmentSelected) {
+      setEmploymentError(true);
+      hasValidationError = true;
+    } else {
+      setEmploymentError(false);
+    }
+    if (hasValidationError) {
+      setError("Please select your role and experience level before generating");
+      return;
+    }
+
     setError("");
     setSetupLoading(true);
-    const role = roleType === "Other" ? customRole : roleType;
 
     // Save role/experience preferences to user profile
     try {
@@ -583,14 +607,19 @@ export default function InterviewSetupPage() {
                     {/* Role dropdown */}
                     <select
                       value={roleType}
-                      onChange={(e) => { setRoleType(e.target.value); setRoleSelected(true); }}
-                      className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-[13px] text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition"
+                      onChange={(e) => { setRoleType(e.target.value); setRoleSelected(true); setRoleError(false); }}
+                      className={`w-full rounded-lg border px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-[13px] text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition ${
+                        roleError ? "border-red-500 ring-2 ring-red-500/20" : "border-gray-300"
+                      }`}
                     >
                       <option value="" disabled>Select a role...</option>
                       {ROLE_OPTIONS.map((role) => (
                         <option key={role} value={role}>{role}</option>
                       ))}
                     </select>
+                    {roleError && (
+                      <p className="text-[11px] text-red-500 font-medium">Please select a role</p>
+                    )}
                     {roleType === "Other" && (
                       <input
                         type="text"
@@ -651,11 +680,11 @@ export default function InterviewSetupPage() {
 
                     {/* Employment Type */}
                     <div>
-                      <label className="block text-[11px] sm:text-[13px] font-medium text-gray-700 mb-1 sm:mb-1.5">Employment Type</label>
+                      <label className={`block text-[11px] sm:text-[13px] font-medium mb-1 sm:mb-1.5 ${employmentError ? "text-red-500" : "text-gray-700"}`}>Employment Type {employmentError && <span className="font-normal">— please select one</span>}</label>
                       <div className="flex gap-2 sm:gap-3">
                         {level === "entry" && (
                           <button
-                            onClick={() => { setEmploymentType("internship"); setEmploymentSelected(true); }}
+                            onClick={() => { setEmploymentType("internship"); setEmploymentSelected(true); setEmploymentError(false); }}
                             className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg border-2 px-2 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-[13px] font-medium transition ${
                               employmentType === "internship" && employmentSelected
                                 ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -669,7 +698,7 @@ export default function InterviewSetupPage() {
                           </button>
                         )}
                         <button
-                          onClick={() => { setEmploymentType("full_time"); setEmploymentSelected(true); }}
+                          onClick={() => { setEmploymentType("full_time"); setEmploymentSelected(true); setEmploymentError(false); }}
                           className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg border-2 px-2 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-[13px] font-medium transition ${
                             employmentType === "full_time" && employmentSelected
                               ? "border-blue-500 bg-blue-50 text-blue-700"
@@ -916,7 +945,7 @@ export default function InterviewSetupPage() {
                   ) : (
                     <button
                       onClick={handleStartInterview}
-                      disabled={setupLoading || !resumeText.trim()}
+                      disabled={setupLoading}
                       className="w-full flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-blue-600 px-4 py-2 sm:px-5 sm:py-3 text-[11px] sm:text-[13px] font-semibold text-white shadow-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg"
                     >
                       {setupLoading ? (

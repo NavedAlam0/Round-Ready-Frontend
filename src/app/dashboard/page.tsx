@@ -271,7 +271,7 @@ function coachingSuggestion(category: string, index: number) {
 export default function DashboardPage() {
   const router = useRouter();
   const { user: authUser, loading: authLoading, planInfo } = useAuth();
-  const isFreePlan = !planInfo || (planInfo.plan === "free" && !planInfo.is_super_admin);
+  const isFreePlanLocked = !planInfo || (planInfo.plan === "free" && !planInfo.is_super_admin && planInfo.credits_remaining <= 0);
   const [interviews, setInterviews] = useState<InterviewItem[]>([]);
   const [practiceStreak, setPracticeStreak] = useState<PracticeStreak>(EMPTY_STREAK);
   const [skillFocus, setSkillFocus] = useState<SkillFocusItem[]>([]);
@@ -526,7 +526,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="relative overflow-hidden rounded-[10px] border border-[#dbe6f5] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.045)]">
-              {isFreePlan && (
+              {isFreePlanLocked && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px]">
                   <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />

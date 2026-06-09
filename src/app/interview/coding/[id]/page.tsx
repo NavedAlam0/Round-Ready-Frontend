@@ -318,7 +318,47 @@ export default function CodingSessionPage({
           </div>
         </main>
       ) : (
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden relative">
+          {/* Full-screen overlay while waiting for agent */}
+          {(status === "connecting" || status === "waiting") && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/95 backdrop-blur-sm">
+              <div className="text-center max-w-sm px-6">
+                {/* Animated avatar */}
+                <div className="mx-auto mb-6 relative">
+                  <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
+                    <svg className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  </div>
+                  {/* Pulsing ring */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full border-2 border-blue-400 animate-ping opacity-20" />
+                  </div>
+                </div>
+
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                  {status === "connecting" ? "Setting up your session..." : "Katie is joining..."}
+                </h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  {status === "connecting"
+                    ? "Connecting to the interview room"
+                    : "Your interviewer will be with you in a moment"}
+                </p>
+
+                {/* Loading dots */}
+                <div className="mt-5 flex items-center justify-center gap-1.5">
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="h-2 w-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+
+                <p className="mt-6 text-xs text-gray-400">
+                  Make sure your microphone is enabled
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Top Status Bar */}
           <div className="border-b border-gray-200 bg-white px-3 py-1.5 sm:px-6 sm:py-2.5 shrink-0">
             <div className="flex items-center justify-between gap-2">
@@ -536,6 +576,9 @@ export default function CodingSessionPage({
                     {status === "active" ? "Katie is here" : status === "waiting" ? "Katie is joining..." : status === "connecting" ? "Connecting..." : "Session ended"}
                   </p>
                   <p className="text-xs text-gray-400">AI Coding Interviewer</p>
+                  {status === "active" && (
+                    <p className="text-[10px] text-blue-500 font-medium animate-pulse">Say &quot;I&apos;m done&quot; when you finish coding</p>
+                  )}
                 </div>
               </div>
 

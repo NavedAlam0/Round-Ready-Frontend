@@ -28,6 +28,10 @@ interface CompanyInfo {
   tech_stack: string[];
   products: string[];
   culture_notes: string;
+  engineering_challenges: string[];
+  predicted_interview_topics: string[];
+  predicted_coding_topics: string[];
+  interview_style: string;
 }
 
 export default function InterviewSetupPage() {
@@ -249,7 +253,7 @@ export default function InterviewSetupPage() {
   // Checklist items (5 items like the mockup)
   const checklist = [
     { label: "Resume uploaded", done: !!resumeText },
-    ...(interviewMode !== "coding" ? [{ label: "Company researched", done: !!companyInfo }] : []),
+    { label: "Company researched", done: !!companyInfo },
     { label: "Role & experience added", done: roleSelected },
     { label: "Employment type selected", done: employmentSelected },
     { label: "Generate questions", done: false },
@@ -260,7 +264,7 @@ export default function InterviewSetupPage() {
   // Steps for left sidebar
   const steps = [
     { id: 1, label: "Upload Resume", sub: "Add your resume", done: !!resumeText },
-    ...(interviewMode !== "coding" ? [{ id: 2, label: "Target Company", sub: "Tell us where you're applying", done: !!companyInfo }] : []),
+    { id: 2, label: "Target Company", sub: "Tell us where you're applying", done: !!companyInfo },
     { id: 3, label: "Role & Experience", sub: "Your role and background", done: roleSelected && employmentSelected },
     { id: 4, label: "Review & Generate", sub: "Review and generate questions", done: false },
   ];
@@ -348,7 +352,7 @@ export default function InterviewSetupPage() {
               <div className="flex items-center gap-0">
                 {[
                   { id: 1, label: "Resume" },
-                  ...(interviewMode !== "coding" ? [{ id: 2, label: "Company" }] : []),
+                  { id: 2, label: "Company" },
                   { id: 3, label: "Role" },
                   { id: 4, label: "Review" },
                 ].map((step, idx) => {
@@ -501,9 +505,9 @@ export default function InterviewSetupPage() {
                   </div>
                 </div>
 
-                {/* Section 2: Target Company (voice mode only) */}
-                {interviewMode !== "coding" && <div className="relative rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
-                  {planInfo && planInfo.plan === "free" && !planInfo.is_super_admin && (
+                {/* Section 2: Target Company */}
+                <div className="relative rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                  {planInfo && planInfo.plan === "free" && !planInfo.is_super_admin && planInfo.credits_remaining <= 0 && (
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white/80 backdrop-blur-[2px]">
                       <svg className="h-7 w-7 text-gray-400 mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -587,7 +591,7 @@ export default function InterviewSetupPage() {
                       )}
                     </div>
                   )}
-                </div>}
+                </div>
 
                 {/* Section 3: Role & Experience */}
                 <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
@@ -836,7 +840,6 @@ export default function InterviewSetupPage() {
                         <p className="text-[11px] sm:text-[13px] font-semibold text-gray-900">Your Selections</p>
                       </div>
                       <div className="space-y-1.5 sm:space-y-2">
-                        {interviewMode !== "coding" && (
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
                             <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -846,7 +849,6 @@ export default function InterviewSetupPage() {
                           </span>
                           <span className="font-medium text-gray-900">{companyInfo ? companyInfo.name : "—"}</span>
                         </div>
-                        )}
                         <div className="flex items-center justify-between text-[10px] sm:text-[12px]">
                           <span className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
                             <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

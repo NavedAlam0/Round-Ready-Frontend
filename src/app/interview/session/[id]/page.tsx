@@ -30,6 +30,7 @@ export default function InterviewSessionPage({
   const router = useRouter();
   const { user: authUser, loading: authLoading } = useAuth();
   const callRef = useRef<any>(null);
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<
     "connecting" | "waiting" | "active" | "ending" | "ended"
   >("connecting");
@@ -130,12 +131,24 @@ export default function InterviewSessionPage({
         call.on("track-started", (event: any) => {
           if (event?.participant?.local) return;
           if (event?.track?.kind === "audio") {
+            remoteAudioRef.current?.pause();
             const audio = new Audio();
             audio.srcObject = new MediaStream([event.track]);
             audio.autoplay = true;
-            audio.play().catch((err: any) =>
-              console.error("Audio play error:", err)
-            );
+            audio.playsInline = true;
+            audio.volume = 1;
+            remoteAudioRef.current = audio;
+
+            const playAudio = () =>
+              audio.play().then(() => {
+                console.info("Daily remote audio playback started");
+              }).catch((err: any) => {
+                console.error("Daily remote audio playback blocked:", err);
+              });
+
+            playAudio();
+            window.addEventListener("click", playAudio, { once: true });
+            window.addEventListener("keydown", playAudio, { once: true });
           }
         });
 
@@ -189,6 +202,8 @@ export default function InterviewSessionPage({
     return () => {
       cancelled = true;
       if (timerRef.current) clearInterval(timerRef.current);
+      remoteAudioRef.current?.pause();
+      remoteAudioRef.current = null;
       if (callRef.current) {
         try {
           callRef.current.leave();

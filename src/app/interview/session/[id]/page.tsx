@@ -135,7 +135,7 @@ export default function InterviewSessionPage({
             const audio = new Audio();
             audio.srcObject = new MediaStream([event.track]);
             audio.autoplay = true;
-            audio.playsInline = true;
+            audio.setAttribute("playsinline", "");
             audio.volume = 1;
             remoteAudioRef.current = audio;
 

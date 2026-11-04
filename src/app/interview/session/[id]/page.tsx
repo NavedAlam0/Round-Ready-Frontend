@@ -44,6 +44,7 @@ export default function InterviewSessionPage({
   const [context, setContext] = useState<InterviewContext | null>(null);
   const [transcriptTab, setTranscriptTab] = useState<"transcript" | "response">("transcript");
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
+  const [interimUserText, setInterimUserText] = useState("");
   const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   // Real-time interview metadata from bot
@@ -176,10 +177,13 @@ export default function InterviewSessionPage({
           if (!data) return;
 
           if (data.type === "transcript") {
+            if (data.role === "user") setInterimUserText("");
             setTranscript((prev) => [
               ...prev,
               { role: data.role, text: data.text },
             ]);
+          } else if (data.type === "transcript_interim" && data.role === "user") {
+            setInterimUserText(data.text);
           } else if (data.type === "interview_metadata") {
             setCurrentQuestion(data.question_number || 0);
             setCurrentSection(data.current_section || "");
@@ -216,7 +220,7 @@ export default function InterviewSessionPage({
   // Auto-scroll transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [transcript]);
+  }, [transcript, interimUserText]);
 
   function handleEndClick() {
     // Count substantive user responses (5+ words, matching backend logic)
@@ -275,6 +279,9 @@ export default function InterviewSessionPage({
 
   // Current category name
   const currentCatName = currentSection || (plan && plan.categories.length > 0 ? plan.categories[0].name : "");
+  const displayedTranscript = interimUserText
+    ? [...transcript, { role: "user", text: interimUserText }]
+    : transcript;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
@@ -455,7 +462,7 @@ export default function InterviewSessionPage({
                     <div className="p-3 sm:p-5 flex-1 overflow-y-auto">
                       {transcriptTab === "transcript" ? (
                         <>
-                          {transcript.length === 0 ? (
+                          {displayedTranscript.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-4 sm:py-6">
                               <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                                 <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 animate-pulse" />
@@ -464,7 +471,7 @@ export default function InterviewSessionPage({
                             </div>
                           ) : (
                             <div className="space-y-3 sm:space-y-4">
-                              {transcript.map((entry, idx) => (
+                              {displayedTranscript.map((entry, idx) => (
                                 <div key={idx} className="flex items-start gap-2 sm:gap-3">
                                   {entry.role !== "user" ? (
                                     <div className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -494,12 +501,12 @@ export default function InterviewSessionPage({
                         </>
                       ) : (
                         <div className="space-y-3">
-                          {transcript.filter((t) => t.role === "user").length === 0 ? (
+                          {displayedTranscript.filter((t) => t.role === "user").length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-4 sm:py-6 text-center">
                               <p className="text-[11px] sm:text-[13px] text-gray-400">Your answer will appear here as you speak...</p>
                             </div>
                           ) : (
-                            transcript.filter((t) => t.role === "user").map((entry, idx) => (
+                            displayedTranscript.filter((t) => t.role === "user").map((entry, idx) => (
                               <div key={idx} className="rounded-lg bg-gray-50 px-3 py-2 sm:px-4 sm:py-2.5">
                                 <p className="text-[11px] sm:text-[13px] text-gray-900 leading-relaxed">{entry.text}</p>
                               </div>

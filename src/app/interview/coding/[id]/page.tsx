@@ -48,6 +48,7 @@ export default function CodingSessionPage({
 
   // UI state
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
+  const [interimUserText, setInterimUserText] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
   const [showProblem, setShowProblem] = useState(true);
   const [mobileTab, setMobileTab] = useState<"code" | "problem">("problem");
@@ -172,7 +173,10 @@ export default function CodingSessionPage({
           const data = event?.data;
           if (!data) return;
           if (data.type === "transcript") {
+            if (data.role === "user") setInterimUserText("");
             setTranscript((prev) => [...prev, { role: data.role, text: data.text }]);
+          } else if (data.type === "transcript_interim" && data.role === "user") {
+            setInterimUserText(data.text);
           }
         });
 
@@ -236,7 +240,7 @@ export default function CodingSessionPage({
   // Auto-scroll transcript
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [transcript]);
+  }, [transcript, interimUserText]);
 
   function handleCodeChange(value: string | undefined) {
     const newCode = value || "";
@@ -296,6 +300,9 @@ export default function CodingSessionPage({
     : problem?.difficulty === "medium"
       ? "bg-yellow-100 text-yellow-700 border-yellow-200"
       : "bg-red-100 text-red-700 border-red-200";
+  const displayedTranscript = interimUserText
+    ? [...transcript, { role: "user", text: interimUserText }]
+    : transcript;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
@@ -632,9 +639,9 @@ export default function CodingSessionPage({
             {/* Transcript Panel (slide up) */}
             {showTranscript && (
               <div className="mt-2 sm:mt-3 border-t border-gray-100 pt-2 sm:pt-3 max-h-[150px] sm:max-h-[200px] overflow-y-auto">
-                {transcript.length > 0 ? (
+                {displayedTranscript.length > 0 ? (
                   <div className="space-y-1.5 sm:space-y-2">
-                    {transcript.map((entry, i) => (
+                    {displayedTranscript.map((entry, i) => (
                       <div key={i} className="flex gap-2">
                         <span className={`text-[10px] sm:text-xs font-bold shrink-0 w-6 ${entry.role === "user" ? "text-gray-500" : "text-blue-600"}`}>
                           {entry.role === "user" ? "You" : "AI"}

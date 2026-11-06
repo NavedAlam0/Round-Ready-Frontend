@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { readReportEvents, reconnectDelay, type ReportStatus } from "@/lib/report-events";
+import { discardFinalSubmission, readFinalSubmission, submitPendingCode, SubmissionError, type FinalSubmission } from "@/lib/pending-submission";
 import Navbar from "@/components/layout/Navbar";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -88,7 +90,7 @@ interface InterviewContext {
   interview_id: string;
   interview_mode: string | null;
   coding_language: string | null;
-  coding_problem: any | null;
+  coding_problem: Record<string, unknown> | null;
   final_code: string | null;
 }
 
@@ -180,15 +182,19 @@ export default function InterviewReportPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showTranscript, setShowTranscript] = useState(false);
-  const [transcript, setTranscript] = useState<any[]>([]);
+  const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
   const [expandedQA, setExpandedQA] = useState<number | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [showFinalCode, setShowFinalCode] = useState(false);
   const [showCorrectedCode, setShowCorrectedCode] = useState(false);
-  const pollRef = useRef<NodeJS.Timeout | null>(null);
-  const pollCountRef = useRef(0);
-  const MAX_POLLS = 60;
+  const [progress, setProgress] = useState<ReportStatus | null>(null);
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const [errorTitle, setErrorTitle] = useState("Report unavailable");
+  const [connectionVersion, setConnectionVersion] = useState(0);
+  const [hasPendingCode, setHasPendingCode] = useState(false);
+  const [finalizingBackup, setFinalizingBackup] = useState(false);
+  const [conflictingSubmission, setConflictingSubmission] = useState<FinalSubmission | null>(null);
 
   const isCoding = context?.interview_mode === "coding";
 
@@ -204,17 +210,15 @@ export default function InterviewReportPage({
   }, [router]);
 
   // Section refs for scroll navigation
-  const sectionRefs = {
-    overview: useRef<HTMLDivElement>(null),
-    categories: useRef<HTMLDivElement>(null),
-    codeReview: useRef<HTMLDivElement>(null),
-    skills: useRef<HTMLDivElement>(null),
-    strengths: useRef<HTMLDivElement>(null),
-    confidence: useRef<HTMLDivElement>(null),
-    qa: useRef<HTMLDivElement>(null),
-    feedback: useRef<HTMLDivElement>(null),
-    transcript: useRef<HTMLDivElement>(null),
-  };
+  const overviewRef = useRef<HTMLDivElement>(null);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const codeReviewRef = useRef<HTMLDivElement>(null);
+  const skillsRef = useRef<HTMLDivElement>(null);
+  const strengthsRef = useRef<HTMLDivElement>(null);
+  const confidenceRef = useRef<HTMLDivElement>(null);
+  const qaRef = useRef<HTMLDivElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const transcriptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -222,48 +226,196 @@ export default function InterviewReportPage({
       router.replace("/login");
       return;
     }
+    const userId = authUser.uid;
 
-    pollCountRef.current = 0;
+    let stopped = false;
+    let finished = false;
+    let generation = 0;
+    let retryAttempt = 0;
+    let controller: AbortController | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
 
-    async function fetchReport() {
+    function showFailure(title: string, message: string) {
+      finished = true;
+      setErrorTitle(title);
+      setError(message);
+      setLoading(false);
+    }
+
+    async function connect() {
+      if (stopped || finished) return;
+      const currentGeneration = ++generation;
+      controller?.abort();
+      clearTimeout(retryTimer);
+      clearTimeout(watchdog);
+      const current = new AbortController();
+      controller = current;
+      const active = () => !stopped && currentGeneration === generation;
+      let streamStarted = 0;
+      const activity = () => {
+        if (!active()) return;
+        if (streamStarted && Date.now() - streamStarted > 15000) retryAttempt = 0;
+        clearTimeout(watchdog);
+        // The backend sends heartbeats even when the job has not changed.
+        watchdog = setTimeout(() => current.abort(), 60000);
+      };
+      if (!navigator.onLine) {
+        setConnectionMessage("You are offline. We will reconnect and submit any saved code when your connection returns.");
+        return;
+      }
+
+      setError("");
+      setConflictingSubmission(null);
+      setLoading(true);
+      setConnectionMessage("Connecting to report updates...");
+      activity();
+      let pending: FinalSubmission | null = null;
       try {
-        pollCountRef.current += 1;
-        const res = await apiFetch(`/api/interview/${id}/report`);
-        if (!res.ok) {
-          const data = await res.json();
-          setError(data.detail || "Failed to load report");
-          setLoading(false);
-          if (pollRef.current) clearInterval(pollRef.current);
+        let storage: Storage | null = null;
+        try {
+          storage = window.localStorage;
+          pending = readFinalSubmission(storage, userId, id);
+        } catch (cause) {
+          if (cause instanceof SubmissionError) throw cause;
+          // Some browsers block storage. Server-side reports still work; the
+          // session page keeps unsent code visible if it cannot save locally.
+        }
+        setHasPendingCode(!!pending);
+        if (pending && storage) {
+          setConnectionMessage("Submitting your saved final code...");
+          await submitPendingCode(apiFetch, storage, userId, id, current.signal);
+          if (active()) setHasPendingCode(false);
+        }
+        if (!active()) return;
+        const response = await apiFetch(`/api/interview/${id}/report/events`, {
+          headers: { Accept: "text/event-stream" },
+          cache: "no-store",
+          signal: current.signal,
+        });
+        if (!active()) return;
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          if (response.status >= 400 && response.status < 500 && ![408, 429].includes(response.status)) {
+            showFailure("Report unavailable", typeof body.detail === "string" ? body.detail : "This report could not be accessed.");
+            return;
+          }
+          throw new Error("Report updates are temporarily unavailable.");
+        }
+        streamStarted = Date.now();
+        await readReportEvents(response, async (update) => {
+          if (!active()) return true;
+          setProgress(update);
+          setConnectionMessage("");
+          if (update.status === "ready") {
+            // Download the report only after the server announces it is ready.
+            const result = await apiFetch(`/api/interview/${id}/report`, { cache: "no-store", signal: current.signal });
+            const data = await result.json();
+            if (!active()) return true;
+            if (!result.ok || data.status !== "ready" || !data.report || typeof data.report !== "object" || Array.isArray(data.report)) {
+              throw new Error("The completed report could not be downloaded yet.");
+            }
+            setReport(data.report);
+            setContext(data.context || null);
+            setLoading(false);
+            finished = true;
+            return true;
+          }
+          if (update.status === "failed" || update.status === "incomplete") {
+            showFailure(
+              update.status === "failed" ? "Report generation stopped" : "Not enough interview material",
+              update.message || "The interview could not be evaluated. You can review your interview history or start another interview.",
+            );
+            return true;
+          }
+          return false;
+        }, activity);
+      } catch (cause) {
+        if (!active()) return;
+        if (cause instanceof SubmissionError && !cause.retryable) {
+          if (cause.status === 409) setConflictingSubmission(pending);
+          showFailure("Final code needs attention", cause.message);
           return;
         }
-        const data = await res.json();
-        if (data.status === "ready") {
-          setReport(data.report);
-          setContext(data.context || null);
-          setLoading(false);
-          if (pollRef.current) clearInterval(pollRef.current);
-        } else if (data.status === "incomplete") {
-          if (pollRef.current) clearInterval(pollRef.current);
-          router.replace("/dashboard");
-        } else if (pollCountRef.current >= MAX_POLLS) {
-          setError("Report generation is taking too long. Please try refreshing the page.");
-          setLoading(false);
-          if (pollRef.current) clearInterval(pollRef.current);
+        setConnectionMessage(navigator.onLine
+          ? "Connection interrupted. Reconnecting automatically; your saved progress is safe."
+          : "You are offline. We will reconnect and submit any saved code when your connection returns.");
+      } finally {
+        current.abort();
+        if (active()) {
+          clearTimeout(watchdog);
+          if (!finished && navigator.onLine) {
+            retryTimer = setTimeout(connect, reconnectDelay(retryAttempt++));
+          }
         }
-      } catch {
-        setError("Failed to load report");
-        setLoading(false);
-        if (pollRef.current) clearInterval(pollRef.current);
       }
     }
 
-    fetchReport();
-    pollRef.current = setInterval(fetchReport, 5000);
-
+    function onOffline() {
+      generation += 1;
+      controller?.abort();
+      clearTimeout(retryTimer);
+      clearTimeout(watchdog);
+      if (!finished) setConnectionMessage("You are offline. We will reconnect when your connection returns.");
+    }
+    function onOnline() {
+      retryAttempt = 0;
+      void connect();
+    }
+    void connect();
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      stopped = true;
+      controller?.abort();
+      clearTimeout(retryTimer);
+      clearTimeout(watchdog);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
     };
-  }, [id, authUser, authLoading]);
+  }, [id, authUser, authLoading, router, connectionVersion]);
+
+  function useAlreadySubmittedCode() {
+    if (!authUser || !conflictingSubmission) return;
+    try {
+      const discarded = discardFinalSubmission(window.localStorage, authUser.uid, id, conflictingSubmission);
+      if (!discarded) {
+        setConflictingSubmission(null);
+        setError("Another tab saved different code while this message was open. Check status again to review that submission.");
+        return;
+      }
+      setHasPendingCode(false);
+      setConflictingSubmission(null);
+      setConnectionVersion((value) => value + 1);
+    } catch {
+      setError("The pending code could not be removed from this browser. Please allow browser storage and try again.");
+    }
+  }
+
+  async function submitLastSavedCode() {
+    setFinalizingBackup(true);
+    try {
+      const res = await apiFetch(`/api/interview/${id}/code-finalize`, { method: "POST", signal: AbortSignal.timeout(15000) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "The saved code could not be submitted.");
+      setConnectionVersion((value) => value + 1);
+    } catch (cause) {
+      setConnectionMessage(cause instanceof Error ? cause.message : "The saved code could not be submitted. Reconnect and try again.");
+    } finally {
+      setFinalizingBackup(false);
+    }
+  }
+
+  async function requestReport() {
+    try {
+      const res = await apiFetch(`/api/interview/${id}/evaluate`, { method: "POST", signal: AbortSignal.timeout(15000) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "The report could not be requested.");
+      setConnectionVersion((value) => value + 1);
+    } catch (cause) {
+      setConnectionMessage(cause instanceof Error ? cause.message : "The report could not be requested. Reconnect and try again.");
+    }
+  }
 
   async function loadTranscript() {
     if (transcript.length === 0) {
@@ -280,6 +432,11 @@ export default function InterviewReportPage({
 
   function scrollToSection(key: string) {
     setActiveSection(key);
+    const sectionRefs = {
+      overview: overviewRef, categories: categoriesRef, codeReview: codeReviewRef,
+      skills: skillsRef, strengths: strengthsRef, confidence: confidenceRef,
+      qa: qaRef, feedback: feedbackRef, transcript: transcriptRef,
+    };
     const ref = sectionRefs[key as keyof typeof sectionRefs];
     ref?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -326,14 +483,20 @@ export default function InterviewReportPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
               </svg>
             </div>
-            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">Failed to Load Report</h2>
+            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">{errorTitle}</h2>
             <p className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6">{error}</p>
+            {conflictingSubmission && (
+              <div className="mb-5 max-w-md rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
+                <p className="mb-3 text-xs text-amber-900">Different code has already been submitted for this interview. Continuing will discard this browser&apos;s pending submission and show the report for the code already saved on the server.</p>
+                <button onClick={useAlreadySubmittedCode} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white">Use already submitted code</button>
+              </div>
+            )}
             <div className="flex gap-2 sm:gap-3">
               <button onClick={() => router.push("/dashboard")} className="rounded-md sm:rounded-lg border border-gray-300 px-3 py-1.5 sm:px-5 sm:py-2 text-[11px] sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 Back to Dashboard
               </button>
-              <button onClick={() => window.location.reload()} className="rounded-md sm:rounded-lg bg-blue-600 px-3 py-1.5 sm:px-5 sm:py-2 text-[11px] sm:text-sm font-medium text-white hover:bg-blue-500 transition">
-                Try Again
+              <button onClick={() => setConnectionVersion((value) => value + 1)} className="rounded-md sm:rounded-lg bg-blue-600 px-3 py-1.5 sm:px-5 sm:py-2 text-[11px] sm:text-sm font-medium text-white hover:bg-blue-500 transition">
+                Check status
               </button>
             </div>
           </div>
@@ -347,12 +510,24 @@ export default function InterviewReportPage({
               </div>
               <div className="absolute inset-0 w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
             </div>
-            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">Analyzing Your Performance</h2>
-            <p className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6 text-center">Our AI is reviewing your session and generating detailed feedback...</p>
+            <h2 className="text-[15px] sm:text-xl font-semibold text-gray-900 mb-1.5 sm:mb-2">{progress?.status === "retrying" ? "Retrying report generation" : progress?.status === "awaiting_submission" ? "Waiting for your final code" : "Preparing your report"}</h2>
+            <p aria-live="polite" className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6 text-center max-w-md">{connectionMessage || progress?.message || "Your interview is being saved. Report updates will appear here automatically."}</p>
             <div className="w-48 sm:w-64 h-1 sm:h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div className="h-full bg-blue-600 rounded-full animate-pulse" style={{ width: "60%" }} />
             </div>
-            <p className="text-[10px] sm:text-xs text-gray-400 mt-2 sm:mt-3">This usually takes 15-30 seconds</p>
+            <p className="text-[10px] sm:text-xs text-gray-400 mt-2 sm:mt-3">You can return to this page later to see the saved result.</p>
+            {progress?.status === "awaiting_submission" && !hasPendingCode && (
+              <div className="mt-5 max-w-md text-center">
+                <p className="mb-3 text-xs text-gray-600">Your final submission was not received. You can use the last code backup saved on the server; it may not include your most recent edits.</p>
+                <button disabled={finalizingBackup} onClick={submitLastSavedCode} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {finalizingBackup ? "Submitting..." : "Submit last saved code"}
+                </button>
+              </div>
+            )}
+            {progress?.status === "not_started" && (
+              <button onClick={requestReport} className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white">Request report</button>
+            )}
+            <button onClick={() => router.push("/dashboard")} className="mt-4 text-sm text-gray-600 underline">Back to Dashboard</button>
           </div>
         ) : report ? (
           <div className="mx-auto max-w-[1536px] flex">
@@ -424,7 +599,7 @@ export default function InterviewReportPage({
               </div>
 
               {/* Score Overview Cards */}
-              <div ref={sectionRefs.overview} className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-8">
+              <div ref={overviewRef} className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 mb-4 sm:mb-8">
                 {/* Overall Score */}
                 <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 flex flex-col items-center justify-center">
                   <p className="text-[10px] sm:text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-2 sm:mb-3">Overall Score</p>
@@ -484,7 +659,7 @@ export default function InterviewReportPage({
               </div>
 
               {/* Category Breakdown */}
-              <div ref={sectionRefs.categories} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+              <div ref={categoriesRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
                 <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-5 flex items-center gap-1.5 sm:gap-2">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
                   Category Breakdown
@@ -520,7 +695,7 @@ export default function InterviewReportPage({
 
               {/* Code Review (coding mode only) */}
               {isCoding && report.code_review && (
-                <div ref={sectionRefs.codeReview} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                <div ref={codeReviewRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
                   <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-5 flex items-center gap-1.5 sm:gap-2">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>
                     Code Review
@@ -662,7 +837,7 @@ export default function InterviewReportPage({
 
               {/* Skill Assessment */}
               {report.skill_assessment && report.skill_assessment.length > 0 && (
-                <div ref={sectionRefs.skills} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                <div ref={skillsRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
                   <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-5 flex items-center gap-1.5 sm:gap-2">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.42 15.17l-5.1-3.572a1.333 1.333 0 010-2.196l5.1-3.572A1.333 1.333 0 0113.333 7v9.334a1.333 1.333 0 01-1.913 1.836zM20.087 15.17l-5.1-3.572a1.333 1.333 0 010-2.196l5.1-3.572a1.333 1.333 0 011.913 1.836v5.768" /></svg>
                     Skill Assessment
@@ -690,7 +865,7 @@ export default function InterviewReportPage({
               )}
 
               {/* Strengths & Weaknesses */}
-              <div ref={sectionRefs.strengths} className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+              <div ref={strengthsRef} className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-green-200">
                   <h2 className="text-[12px] sm:text-base font-semibold text-green-700 mb-2.5 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -724,7 +899,7 @@ export default function InterviewReportPage({
 
               {/* Confidence Analysis */}
               {report.confidence_analysis && (
-                <div ref={sectionRefs.confidence} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-purple-200 mb-4 sm:mb-6">
+                <div ref={confidenceRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-purple-200 mb-4 sm:mb-6">
                   <div className="flex items-center justify-between mb-2.5 sm:mb-4">
                     <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 flex items-center gap-1.5 sm:gap-2">
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" /></svg>
@@ -795,7 +970,7 @@ export default function InterviewReportPage({
 
               {/* Q&A Review */}
               {report.question_answers && report.question_answers.length > 0 && (
-                <div ref={sectionRefs.qa} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                <div ref={qaRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
                   <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-5 flex items-center gap-1.5 sm:gap-2">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
                     Question & Answer Review
@@ -842,7 +1017,7 @@ export default function InterviewReportPage({
               )}
 
               {/* Detailed Feedback */}
-              <div ref={sectionRefs.feedback} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+              <div ref={feedbackRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
                 <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 mb-2.5 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                   Detailed Feedback
@@ -869,7 +1044,7 @@ export default function InterviewReportPage({
               </div>
 
               {/* Transcript */}
-              <div ref={sectionRefs.transcript} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-6 sm:mb-8 print:hidden">
+              <div ref={transcriptRef} className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-6 shadow-sm border border-gray-200 mb-6 sm:mb-8 print:hidden">
                 <button onClick={loadTranscript} className="w-full flex items-center justify-between">
                   <h2 className="text-[13px] sm:text-lg font-semibold text-gray-900 flex items-center gap-1.5 sm:gap-2">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" /></svg>

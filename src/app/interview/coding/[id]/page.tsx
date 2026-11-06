@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { saveFinalSubmission, submitPendingCode } from "@/lib/pending-submission";
 import Navbar from "@/components/layout/Navbar";
 import PaywallModal from "@/components/PaywallModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import Editor from "@monaco-editor/react";
+import type { DailyCall } from "@daily-co/daily-js";
 
 interface CodingProblem {
   title: string;
@@ -27,7 +29,7 @@ export default function CodingSessionPage({
   const { id } = use(params);
   const router = useRouter();
   const { user: authUser, loading: authLoading } = useAuth();
-  const callRef = useRef<any>(null);
+  const callRef = useRef<DailyCall | null>(null);
 
   // Session state
   const [status, setStatus] = useState<"connecting" | "waiting" | "active" | "ending" | "ended">("connecting");
@@ -39,12 +41,16 @@ export default function CodingSessionPage({
   // Problem & code state
   const [problem, setProblem] = useState<CodingProblem | null>(null);
   const [codingLanguage, setCodingLanguage] = useState("python");
+  const languageRef = useRef("python");
   const [code, setCode] = useState("");
   const codeRef = useRef("");
   const lastSyncedCode = useRef("");
   const lastBackedUpCode = useRef("");
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
   const backupTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const endingRef = useRef(false);
+  const finalizingRef = useRef(false);
+  const [submissionError, setSubmissionError] = useState("");
 
   // UI state
   const [transcript, setTranscript] = useState<{ role: string; text: string }[]>([]);
@@ -63,19 +69,80 @@ export default function CodingSessionPage({
         if (res.ok) {
           const data = await res.json();
           setProblem(data.problem);
-          if (data.context?.coding_language) {
-            setCodingLanguage(data.context.coding_language);
-          }
-          // Set starter code
+          // Rejoining an active interview restores the saved draft.
           const lang = data.context?.coding_language || "python";
+          setCodingLanguage(lang);
+          languageRef.current = lang;
           const starter = data.problem?.starter_code?.[lang] || "";
-          setCode(starter);
-          codeRef.current = starter;
+          const initialCode = typeof data.saved_code === "string" ? data.saved_code : starter;
+          setCode(initialCode);
+          codeRef.current = initialCode;
+          if (typeof data.saved_code === "string") lastBackedUpCode.current = data.saved_code;
         }
       } catch {}
     }
-    fetchProblem();
-  }, [id]);
+    if (authUser && !authLoading) fetchProblem();
+  }, [id, authUser, authLoading]);
+
+  const finalizeSession = useCallback(async (stopBot: boolean) => {
+    if (!authUser || finalizingRef.current) return;
+    finalizingRef.current = true;
+    endingRef.current = true;
+    setStatus("ending");
+    setSubmissionError("");
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    if (backupTimerRef.current) clearInterval(backupTimerRef.current);
+
+    // Save before sending: the report page can finish this handoff after a
+    // disconnect or reload, using only the signed-in user's pending payload.
+    let savedLocally = false;
+    try {
+      saveFinalSubmission(window.localStorage, authUser.uid, id, {
+        code: codeRef.current,
+        language: languageRef.current,
+      });
+      savedLocally = true;
+    } catch {}
+
+    try {
+      if (savedLocally) {
+        await submitPendingCode(apiFetch, window.localStorage, authUser.uid, id, AbortSignal.timeout(15000));
+      } else {
+        const res = await apiFetch(`/api/interview/${id}/code-sync`, {
+          method: "POST",
+          body: JSON.stringify({ code: codeRef.current, language: languageRef.current, is_final: true }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!res.ok) throw new Error("Final code submission failed");
+      }
+    } catch {
+      if (!savedLocally) {
+        setSubmissionError("Your final code could not be saved. Keep this page open, reconnect, and try submitting again.");
+        setStatus("ended");
+        finalizingRef.current = false;
+        return;
+      }
+      // The report page displays the failure and retries the saved submission.
+    }
+    if (stopBot) {
+      try {
+        const res = await apiFetch(`/api/interview/${id}/end`, { method: "POST", signal: AbortSignal.timeout(15000) });
+        if (!res.ok) console.warn("Interview stop request failed; leaving the room will also stop the voice agent.");
+      } catch {
+        // Leaving the room triggers the agent's completion callback as well.
+      }
+    }
+    if (callRef.current) {
+      try {
+        await callRef.current.leave();
+        callRef.current.destroy();
+      } catch {}
+      callRef.current = null;
+    }
+    setStatus("ended");
+    router.replace(`/interview/report/${id}`);
+  }, [authUser, id, router]);
 
   // Initialize Daily.co connection
   useEffect(() => {
@@ -127,39 +194,25 @@ export default function CodingSessionPage({
           }, 1000);
         });
 
-        call.on("participant-joined", (event: any) => {
+        call.on("participant-joined", (event) => {
           if (event?.participant?.user_name === "AI Interviewer") {
             setStatus("active");
           }
         });
 
-        call.on("track-started", (event: any) => {
+        call.on("track-started", (event) => {
           if (event?.participant?.local) return;
           if (event?.track?.kind === "audio") {
             const audio = new Audio();
             audio.srcObject = new MediaStream([event.track]);
             audio.autoplay = true;
-            audio.play().catch((err: any) => console.error("Audio play error:", err));
+            audio.play().catch((err) => console.error("Audio play error:", err));
           }
         });
 
-        call.on("participant-left", async (event: any) => {
-          if (event?.participant?.user_name === "AI Interviewer") {
-            setStatus("ended");
-            if (timerRef.current) clearInterval(timerRef.current);
-            // Save final code before navigating away
-            try {
-              await apiFetch(`/api/interview/${id}/code-sync`, {
-                method: "POST",
-                body: JSON.stringify({ code: codeRef.current, language: codingLanguage }),
-              });
-            } catch {}
-            try {
-              call.leave();
-              call.destroy();
-              callRef.current = null;
-            } catch {}
-            router.replace(`/interview/report/${id}`);
+        call.on("participant-left", async (event) => {
+          if (!cancelled && event?.participant?.user_name === "AI Interviewer") {
+            await finalizeSession(false);
           }
         });
 
@@ -168,7 +221,7 @@ export default function CodingSessionPage({
         });
 
         // Listen for transcript messages
-        call.on("app-message", (event: any) => {
+        call.on("app-message", (event) => {
           const data = event?.data;
           if (!data) return;
           if (data.type === "transcript") {
@@ -198,40 +251,40 @@ export default function CodingSessionPage({
         } catch {}
       }
     };
-  }, [id, authUser, authLoading]);
+  }, [id, authUser, authLoading, router, finalizeSession]);
 
   // Code sync to voice agent via Daily.co app-message (debounced 3s)
   const syncCodeToAgent = useCallback((newCode: string) => {
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     syncTimerRef.current = setTimeout(() => {
-      if (callRef.current && newCode !== lastSyncedCode.current) {
+      if (!endingRef.current && callRef.current && newCode !== lastSyncedCode.current) {
         callRef.current.sendAppMessage({
           type: "code_sync",
           code: newCode,
-          language: codingLanguage,
+          language: languageRef.current,
         }, "*");
         lastSyncedCode.current = newCode;
       }
     }, 3000);
-  }, [codingLanguage]);
+  }, []);
 
   // Periodic backup to backend (every 30s)
   useEffect(() => {
     backupTimerRef.current = setInterval(() => {
       const currentCode = codeRef.current;
-      if (currentCode && currentCode !== lastBackedUpCode.current) {
+      if (!endingRef.current && currentCode !== lastBackedUpCode.current) {
         apiFetch(`/api/interview/${id}/code-sync`, {
           method: "POST",
-          body: JSON.stringify({ code: currentCode, language: codingLanguage }),
-        }).then(() => {
-          lastBackedUpCode.current = currentCode;
+          body: JSON.stringify({ code: currentCode, language: languageRef.current, is_final: false }),
+        }).then((res) => {
+          if (res.ok) lastBackedUpCode.current = currentCode;
         }).catch(() => {});
       }
     }, 30000);
     return () => {
       if (backupTimerRef.current) clearInterval(backupTimerRef.current);
     };
-  }, [id, codingLanguage]);
+  }, [id]);
 
   // Auto-scroll transcript
   useEffect(() => {
@@ -239,6 +292,7 @@ export default function CodingSessionPage({
   }, [transcript]);
 
   function handleCodeChange(value: string | undefined) {
+    if (endingRef.current) return;
     const newCode = value || "";
     setCode(newCode);
     codeRef.current = newCode;
@@ -247,27 +301,7 @@ export default function CodingSessionPage({
 
   async function handleEndSession() {
     setShowEndWarning(false);
-    setStatus("ending");
-    // Save final code using ref to get the latest value
-    try {
-      await apiFetch(`/api/interview/${id}/code-sync`, {
-        method: "POST",
-        body: JSON.stringify({ code: codeRef.current, language: codingLanguage }),
-      });
-    } catch {}
-    // End interview
-    try {
-      await apiFetch(`/api/interview/${id}/end`, { method: "POST" });
-    } catch {}
-    if (callRef.current) {
-      try {
-        await callRef.current.leave();
-        callRef.current.destroy();
-        callRef.current = null;
-      } catch {}
-    }
-    if (timerRef.current) clearInterval(timerRef.current);
-    router.replace(`/interview/report/${id}`);
+    await finalizeSession(true);
   }
 
   function toggleMute() {
@@ -300,6 +334,12 @@ export default function CodingSessionPage({
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
       <Navbar />
+      {submissionError && (
+        <div role="alert" className="flex items-center justify-between gap-3 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+          <p>{submissionError}</p>
+          <button onClick={handleEndSession} className="shrink-0 rounded border border-amber-500 px-3 py-1 font-medium">Submit again</button>
+        </div>
+      )}
 
       {error ? (
         <main className="flex-1 flex items-center justify-center px-5">
@@ -383,11 +423,14 @@ export default function CodingSessionPage({
                 </div>
                 <select
                   value={codingLanguage}
+                  disabled={status === "ending" || status === "ended"}
                   onChange={(e) => {
                     const newLang = e.target.value;
                     setCodingLanguage(newLang);
+                    languageRef.current = newLang;
                     if (problem?.starter_code?.[newLang] && code === (problem?.starter_code?.[codingLanguage] || "")) {
                       setCode(problem.starter_code[newLang]);
+                      codeRef.current = problem.starter_code[newLang];
                     }
                   }}
                   className="rounded-md border border-gray-300 px-2 py-1 text-[10px] sm:text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -474,6 +517,7 @@ export default function CodingSessionPage({
                 onChange={handleCodeChange}
                 theme="vs-dark"
                 options={{
+                  readOnly: status === "ending" || status === "ended",
                   fontSize: 13,
                   minimap: { enabled: false },
                   lineNumbers: "on",
@@ -547,6 +591,7 @@ export default function CodingSessionPage({
                   onChange={handleCodeChange}
                   theme="vs-dark"
                   options={{
+                    readOnly: status === "ending" || status === "ended",
                     fontSize: 14,
                     minimap: { enabled: false },
                     lineNumbers: "on",

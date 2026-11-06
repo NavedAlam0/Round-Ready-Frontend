@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:report": "node --test tests/report-flow.test.mjs"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.87.0",
